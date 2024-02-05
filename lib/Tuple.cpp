@@ -3,9 +3,14 @@
 
 namespace RT {
 
-Tuple::Tuple() : x(0), y(0), z(0), w(0) {}
+Tuple::Tuple()
+    : x(0), y(0), z(0), w(0), red(this->x), green(this->y), blue(this->z) {}
 
-Tuple::Tuple(double x, double y, double z, double w) : x(x), y(y), z(z), w(w) {}
+Tuple::Tuple(const Tuple &t)
+    : x(t.x), y(t.y), z(t.z), w(t.w), red(this->x), green(this->y),
+      blue(this->z) {}
+Tuple::Tuple(double x, double y, double z, double w)
+    : x(x), y(y), z(z), w(w), red(this->x), green(this->y), blue(this->z) {}
 
 bool Tuple::isPoint() const { return w == 1.0; }
 
@@ -38,6 +43,14 @@ bool Tuple::operator==(const Tuple &t) const {
 
 bool Tuple::operator!=(const Tuple &t) const { return !(*this == t); }
 
+Tuple &Tuple::operator=(const Tuple &t) {
+  this->x = t.x;
+  this->y = t.y;
+  this->z = t.z;
+  this->w = t.w;
+  return *this;
+}
+
 double Tuple::magnitude() const {
   return std::sqrt(x * x + y * y + z * z + w * w);
 }
@@ -57,15 +70,15 @@ double dot(const Tuple &a, const Tuple &b) {
 }
 
 Tuple cross(const Tuple &a, const Tuple &b) {
-  return Vector(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z,
+  return vector(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z,
                 a.x * b.y - a.y * b.x);
 }
 
-Tuple Point(double x, double y, double z) { return Tuple(x, y, z, 1.0); }
+Tuple point(double x, double y, double z) { return Tuple(x, y, z, 1.0); }
 
-Tuple Vector(double x, double y, double z) { return Tuple(x, y, z, 0.0); }
+Tuple vector(double x, double y, double z) { return Tuple(x, y, z, 0.0); }
 
-Tuple Color(double r, double g, double b) { return Tuple(r, g, b, 0.0); }
+Tuple color(double r, double g, double b) { return Tuple(r, g, b, 0.0); }
 
 Tuple hadamard(const Tuple &a, const Tuple &b) {
   return Tuple(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w);

@@ -2,7 +2,9 @@
 #include <iostream>
 
 int main() {
-  auto p = RT::Point(4, -4, 3);
-
-  std::cout << "Hello" << std::endl;
+  RT::Color c = RT::color(4, 5, 6);
+  auto p = RT::color(1, 2, 3);
+  std::cout << c.red << std::endl;
+  c = p;
+  std::cout << c.red << std::endl;
 }
