@@ -1,13 +1,18 @@
 #pragma once
 #include "Util.hpp"
+#include <array>
+#include <cassert>
 #include <cmath>
 namespace RT {
 class Tuple {
+private:
+  std::array<double, 4> data;
+
 public:
   Tuple();
   Tuple(const Tuple &t);
   Tuple(double x, double y, double z, double w);
-  double x, y, z, w;
+  double &x, &y, &z, &w;
   double &red, &green, &blue;
   bool isPoint() const;
   bool isVector() const;
@@ -19,6 +24,8 @@ public:
   bool operator==(const Tuple &t) const;
   bool operator!=(const Tuple &t) const;
   Tuple &operator=(const Tuple &t);
+  const double &operator()(int i) const;
+  double &operator()(int i);
   double magnitude() const;
   Tuple norm() const;
   Tuple &normalize();

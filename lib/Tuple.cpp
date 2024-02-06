@@ -4,13 +4,15 @@
 namespace RT {
 
 Tuple::Tuple()
-    : x(0), y(0), z(0), w(0), red(this->x), green(this->y), blue(this->z) {}
+    : data{0, 0, 0, 0}, x(data[0]), y(data[1]), z(data[2]), w(data[3]),
+      red(data[0]), green(data[1]), blue(data[2]) {}
 
 Tuple::Tuple(const Tuple &t)
-    : x(t.x), y(t.y), z(t.z), w(t.w), red(this->x), green(this->y),
-      blue(this->z) {}
+    : data{t.x, t.y, t.z, t.w}, x(data[0]), y(data[1]), z(data[2]), w(data[3]),
+      red(data[0]), green(data[1]), blue(data[2]) {}
 Tuple::Tuple(double x, double y, double z, double w)
-    : x(x), y(y), z(z), w(w), red(this->x), green(this->y), blue(this->z) {}
+    : data{x, y, z, w}, x(data[0]), y(data[1]), z(data[2]), w(data[3]),
+      red(data[0]), green(data[1]), blue(data[2]) {}
 
 bool Tuple::isPoint() const { return w == 1.0; }
 
@@ -82,5 +84,14 @@ Tuple color(double r, double g, double b) { return Tuple(r, g, b, 0.0); }
 
 Tuple hadamard(const Tuple &a, const Tuple &b) {
   return Tuple(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w);
+}
+double &Tuple::operator()(int i) {
+  assert(i >= 0 && i < 4 && "out of bounds");
+  return data[i];
+}
+
+const double &Tuple::operator()(int i) const {
+  assert(i >= 0 && i < 4 && "out of bounds");
+  return data[i];
 }
 } // namespace RT
