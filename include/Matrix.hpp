@@ -21,19 +21,13 @@ public:
   double determinant() const;
   bool isInvertible() const;
   Matrix<m> inverse() const;
-
-  const int rows;
-  const int cols;
 };
 
 using Transformation = Matrix<4>;
 
-template <int m> Matrix<m>::Matrix() : rows(m), cols(m) {
-  data = std::array<double, m * m>(0);
-}
+template <int m> Matrix<m>::Matrix() { data = std::array<double, m * m>(0); }
 
-template <int m>
-Matrix<m>::Matrix(const std::array<double, m * m> &v) : rows(m), cols(m) {
+template <int m> Matrix<m>::Matrix(const std::array<double, m * m> &v) {
   data = v;
 }
 
