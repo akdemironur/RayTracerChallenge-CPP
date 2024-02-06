@@ -48,4 +48,4 @@ target_link_libraries(RayTest PRIVATE Catch2::Catch2WithMain Intersection )
 add_test(NAME RayTest COMMAND RayTest)
 
 add_executable          ( RT src/RT.cpp )
-target_link_libraries   ( RT Tuple )
+target_link_libraries   ( RT Intersection Shape Canvas )

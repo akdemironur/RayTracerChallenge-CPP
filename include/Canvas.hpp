@@ -1,6 +1,7 @@
 #pragma once
 #include "Tuple.hpp"
 #include "Util.hpp"
+#include <fstream>
 #include <string>
 #include <vector>
 namespace RT {
@@ -13,6 +14,7 @@ public:
   std::string PPMHeader() const;
   std::string PPMBody() const;
   std::string PPM() const;
+  void savePPM(const std::string &filename) const;
   int width, height;
 
 private:

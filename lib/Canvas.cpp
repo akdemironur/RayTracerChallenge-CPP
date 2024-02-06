@@ -26,4 +26,11 @@ std::string Canvas::PPMBody() const {
 
 std::string Canvas::PPM() const { return PPMHeader() + "\n" + PPMBody(); }
 
+void Canvas::savePPM(const std::string &filename) const {
+  std::ofstream file;
+  file.open(filename);
+  file << PPM();
+  file.close();
+}
+
 } // namespace RT
