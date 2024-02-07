@@ -94,4 +94,9 @@ const double &Tuple::operator()(int i) const {
   assert(i >= 0 && i < 4 && "out of bounds");
   return data[i];
 }
+
+Tuple Tuple::reflect(const Tuple &normal) const {
+  return *this - normal * 2 * dot(*this, normal);
+}
+
 } // namespace RT

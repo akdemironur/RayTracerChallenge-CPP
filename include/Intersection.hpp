@@ -6,7 +6,19 @@
 #include <vector>
 
 namespace RT {
-using Intersection = std::pair<double, const Sphere &>;
+using Intersection = std::pair<double, const Sphere *>;
+
+class Computations {
+public:
+  Computations(const Intersection &i, const Ray &r);
+  double t;
+  const Sphere *object;
+  Point point;
+  Point overPoint;
+  Vector eye;
+  Vector normal;
+  bool inside;
+};
 
 std::vector<Intersection> intersect(const Sphere &s, const Ray &r);
 

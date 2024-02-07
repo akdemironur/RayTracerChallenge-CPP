@@ -1,8 +1,11 @@
 #pragma once
+#include "Camera.hpp"
 #include "Canvas.hpp"
 #include "Intersection.hpp"
+#include "Light.hpp"
 #include "Matrix.hpp"
 #include "Ray.hpp"
 #include "Shape.hpp"
 #include "Tuple.hpp"
 #include "Util.h"
+#include "World.hpp"

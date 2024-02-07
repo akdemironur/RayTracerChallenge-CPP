@@ -9,10 +9,8 @@ Ray::Ray(Point origin, Vector direction)
 
 Point Ray::position(double t) const { return origin + direction * t; }
 
-int Ray::count() const { return intersections.size(); }
-
-Ray transform(const Ray &r, const Transformation &m) {
-  return Ray(m * r.origin, m * r.direction);
+Ray Ray::transform(const Transformation &m) const {
+  return Ray(m * origin, m * direction);
 }
 
 } // namespace RT

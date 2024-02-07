@@ -340,3 +340,40 @@ TEST_CASE("Chained transformations must be applied in reverse order",
   REQUIRE(T * p == RT::point(15, 0, 7));
   REQUIRE((p >>= A >>= B >>= C) == RT::point(15, 0, 7));
 }
+
+TEST_CASE("The transformation matrix for the default orientation", "[Matrix]") {
+  RT::Tuple from = RT::point(0, 0, 0);
+  RT::Tuple to = RT::point(0, 0, -1);
+  RT::Tuple up = RT::vector(0, 1, 0);
+  RT::Matrix<4> t = RT::viewTransform(from, to, up);
+  REQUIRE(t == RT::identityMatrix<4>());
+}
+
+TEST_CASE("A view transformation matrix looking in positive z direction",
+          "[Matrix]") {
+  RT::Tuple from = RT::point(0, 0, 0);
+  RT::Tuple to = RT::point(0, 0, 1);
+  RT::Tuple up = RT::vector(0, 1, 0);
+  RT::Matrix<4> t = RT::viewTransform(from, to, up);
+  REQUIRE(t == RT::scaling(-1, 1, -1));
+}
+
+TEST_CASE("The view transformation moves the world", "[Matrix]") {
+  RT::Tuple from = RT::point(0, 0, 8);
+  RT::Tuple to = RT::point(0, 0, 0);
+  RT::Tuple up = RT::vector(0, 1, 0);
+  RT::Matrix<4> t = RT::viewTransform(from, to, up);
+  REQUIRE(t == RT::translation(0, 0, -8));
+}
+
+TEST_CASE("An arbitrary view transformation", "[Matrix]") {
+  RT::Tuple from = RT::point(1, 3, 2);
+  RT::Tuple to = RT::point(4, -2, 8);
+  RT::Tuple up = RT::vector(1, 1, 0);
+  RT::Matrix<4> t = RT::viewTransform(from, to, up);
+  RT::Matrix<4> expected =
+      RT::Matrix<4>({-0.50709, 0.50709, 0.67612, -2.36643, 0.76772, 0.60609,
+                     0.12122, -2.82843, -0.35857, 0.59761, -0.71714, 0.00000,
+                     0.00000, 0.00000, 0.00000, 1.00000});
+  REQUIRE(t == expected);
+}

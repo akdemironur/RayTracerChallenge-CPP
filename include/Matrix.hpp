@@ -227,4 +227,15 @@ inline Tuple operator>>=(const Tuple &b, const Transformation &A) {
   return A * b;
 }
 
+inline Transformation viewTransform(const Point &from, const Point &to,
+                                    const Vector &up) {
+  auto forward = (to - from).norm();
+  auto left = cross(forward, up.norm());
+  auto trueUp = cross(left, forward);
+  auto orientation =
+      Transformation({left.x, left.y, left.z, 0, trueUp.x, trueUp.y, trueUp.z,
+                      0, -forward.x, -forward.y, -forward.z, 0, 0, 0, 0, 1});
+  return orientation * translation(-from.x, -from.y, -from.z);
+}
+
 } // namespace RT

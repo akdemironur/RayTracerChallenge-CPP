@@ -65,15 +65,15 @@ TEST_CASE("A sphere is behind a ray", "[Ray]") {
 
 TEST_CASE("An intersection encapsulates t and object", "[Intersection]") {
   RT::Sphere s;
-  RT::Intersection i(3.5, s);
+  RT::Intersection i(3.5, &s);
   REQUIRE(i.first == 3.5);
-  REQUIRE(&i.second == &s);
+  REQUIRE(i.second == &s);
 }
 
 TEST_CASE("Aggregating intersections", "[Intersection]") {
   RT::Sphere s;
-  RT::Intersection i1(1, s);
-  RT::Intersection i2(2, s);
+  RT::Intersection i1(1, &s);
+  RT::Intersection i2(2, &s);
   auto xs = RT::intersections(i1, i2);
   REQUIRE(xs.size() == 2);
   REQUIRE(xs[0].first == 1);
@@ -85,37 +85,37 @@ TEST_CASE("Intersect sets the object on the intersection", "[Intersection]") {
   RT::Sphere s;
   auto xs = intersect(s, r);
   REQUIRE(xs.size() == 2);
-  REQUIRE(&xs[0].second == &s);
-  REQUIRE(&xs[1].second == &s);
+  REQUIRE(xs[0].second == &s);
+  REQUIRE(xs[1].second == &s);
 }
 
 TEST_CASE("The hit, when all intersections have positive t", "[Intersection]") {
   RT::Sphere s;
-  RT::Intersection i1(1, s);
-  RT::Intersection i2(2, s);
+  RT::Intersection i1(1, &s);
+  RT::Intersection i2(2, &s);
   auto xs = RT::intersections(i1, i2);
   auto i = RT::hit(xs);
   REQUIRE(i.has_value());
   REQUIRE(i.value().first == 1);
-  REQUIRE(&i.value().second == &s);
+  REQUIRE(i.value().second == &s);
 }
 
 TEST_CASE("The hit, when some intersections have negative t",
           "[Intersection]") {
   RT::Sphere s;
-  RT::Intersection i1(-1, s);
-  RT::Intersection i2(1, s);
+  RT::Intersection i1(-1, &s);
+  RT::Intersection i2(1, &s);
   auto xs = RT::intersections(i1, i2);
   auto i = RT::hit(xs);
   REQUIRE(i.has_value());
   REQUIRE(i.value().first == 1);
-  REQUIRE(&i.value().second == &s);
+  REQUIRE(i.value().second == &s);
 }
 
 TEST_CASE("The hit, when all intersections have negative t", "[Intersection]") {
   RT::Sphere s;
-  RT::Intersection i1(-2, s);
-  RT::Intersection i2(-1, s);
+  RT::Intersection i1(-2, &s);
+  RT::Intersection i2(-1, &s);
   auto xs = RT::intersections(i1, i2);
   auto i = RT::hit(xs);
   REQUIRE(!i.has_value());
@@ -124,24 +124,24 @@ TEST_CASE("The hit, when all intersections have negative t", "[Intersection]") {
 TEST_CASE("The hit is always the lowest nonnegative intersection",
           "[Intersection]") {
   RT::Sphere s1;
-  RT::Intersection i1(5, s1);
+  RT::Intersection i1(5, &s1);
   RT::Sphere s2;
-  RT::Intersection i2(7, s2);
+  RT::Intersection i2(7, &s2);
   RT::Sphere s3;
-  RT::Intersection i3(-3, s3);
+  RT::Intersection i3(-3, &s3);
   RT::Sphere s4;
-  RT::Intersection i4(2, s4);
+  RT::Intersection i4(2, &s4);
   auto xs = RT::intersections(i1, i2, i3, i4);
   auto i = RT::hit(xs);
   REQUIRE(i.has_value());
   REQUIRE(i.value().first == 2);
-  REQUIRE(&i.value().second == &s4);
+  REQUIRE(i.value().second == &s4);
 }
 
 TEST_CASE("Translating a ray", "[Ray]") {
   RT::Ray r(RT::point(1, 2, 3), RT::vector(0, 1, 0));
   RT::Transformation m = RT::translation(3, 4, 5);
-  auto r2 = RT::transform(r, m);
+  auto r2 = r.transform(m);
   REQUIRE(r2.origin == RT::point(4, 6, 8));
   REQUIRE(r2.direction == RT::vector(0, 1, 0));
 }
@@ -149,7 +149,7 @@ TEST_CASE("Translating a ray", "[Ray]") {
 TEST_CASE("Scaling a ray", "[Ray]") {
   RT::Ray r(RT::point(1, 2, 3), RT::vector(0, 1, 0));
   RT::Transformation m = RT::scaling(2, 3, 4);
-  auto r2 = RT::transform(r, m);
+  auto r2 = r.transform(m);
   REQUIRE(r2.origin == RT::point(2, 6, 12));
   REQUIRE(r2.direction == RT::vector(0, 3, 0));
 }

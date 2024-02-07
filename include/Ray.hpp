@@ -12,12 +12,7 @@ public:
   Ray();
   Ray(Tuple origin, Tuple direction);
   Point position(double t) const;
-  int count() const;
-
-private:
-  std::vector<double> intersections;
+  Ray transform(const Transformation &m) const;
 };
-
-Ray transform(const Ray &r, const Transformation &m);
 
 } // namespace RT

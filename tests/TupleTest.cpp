@@ -113,3 +113,15 @@ TEST_CASE("Multiplying colors", "[Tuple]") {
   RT::Tuple c2 = RT::color(0.9, 1, 0.1);
   REQUIRE(hadamard(c1, c2) == RT::color(0.9, 0.2, 0.04));
 }
+
+TEST_CASE("Reflecting a vector approaching at 45 degrees", "[Tuple]") {
+  RT::Tuple v = RT::vector(1, -1, 0);
+  RT::Tuple n = RT::vector(0, 1, 0);
+  REQUIRE(v.reflect(n) == RT::vector(1, 1, 0));
+}
+
+TEST_CASE("Reflecting a vector off a slanted surface", "[Tuple]") {
+  RT::Tuple v = RT::vector(0, -1, 0);
+  RT::Tuple n = RT::vector(std::sqrt(2) / 2, std::sqrt(2) / 2, 0);
+  REQUIRE(v.reflect(n) == RT::vector(1, 0, 0));
+}

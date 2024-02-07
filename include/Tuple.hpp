@@ -27,6 +27,7 @@ public:
   const double &operator()(int i) const;
   double &operator()(int i);
   double magnitude() const;
+  Tuple reflect(const Tuple &normal) const;
   Tuple norm() const;
   Tuple &normalize();
 };
