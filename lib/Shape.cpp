@@ -47,11 +47,11 @@ Vector Sphere::normalAt(const Point &p) const {
 
 Vector Plane::normalAt(const Point &p) const { return vector(0, 1, 0); }
 
-Tuple lighting(const Material &material, const Light &light, const Point &point,
-               const Vector &eye, const Vector &normal, bool inShadow) {
+Tuple Shape::lighting(const Light &light, const Point &point, const Vector &eye,
+                      const Vector &normal, bool inShadow) const {
   RT::Color localcolor;
   if (material.pattern) {
-    localcolor = material.pattern->patternAt(point);
+    localcolor = patternAt(point);
   } else {
     localcolor = material.color;
   }

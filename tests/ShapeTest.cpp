@@ -1,4 +1,5 @@
 #include "Shape.hpp"
+#include "Matrix.hpp"
 #include "Ray.hpp"
 #include <catch2/catch_test_macros.hpp>
 
@@ -76,7 +77,8 @@ TEST_CASE("Lighting with the eye between the light and the surface",
   RT::Vector eye = RT::vector(0, 0, -1);
   RT::Vector normal = RT::vector(0, 0, -1);
   RT::Light light = RT::Light(RT::point(0, 0, -10), RT::color(1, 1, 1));
-  auto result = lighting(m, light, position, eye, normal);
+  RT::Sphere s(RT::identityMatrix<4>(), m);
+  auto result = s.lighting(light, position, eye, normal);
   REQUIRE(result == RT::color(1.9, 1.9, 1.9));
 }
 
@@ -88,7 +90,8 @@ TEST_CASE(
   RT::Vector eye = RT::vector(0, sqrt(2) / 2, -sqrt(2) / 2);
   RT::Vector normal = RT::vector(0, 0, -1);
   RT::Light light = RT::Light(RT::point(0, 0, -10), RT::color(1, 1, 1));
-  auto result = lighting(m, light, position, eye, normal);
+  RT::Sphere s(RT::identityMatrix<4>(), m);
+  auto result = s.lighting(light, position, eye, normal);
   REQUIRE(result == RT::color(1.0, 1.0, 1.0));
 }
 
@@ -99,7 +102,8 @@ TEST_CASE("Lighting with the eye opposite the surface, light offset 45",
   RT::Vector eye = RT::vector(0, 0, -1);
   RT::Vector normal = RT::vector(0, 0, -1);
   RT::Light light = RT::Light(RT::point(0, 10, -10), RT::color(1, 1, 1));
-  auto result = lighting(m, light, position, eye, normal);
+  RT::Sphere s(RT::identityMatrix<4>(), m);
+  auto result = s.lighting(light, position, eye, normal);
   REQUIRE(result == RT::color(0.7364, 0.7364, 0.7364));
 }
 
@@ -110,7 +114,8 @@ TEST_CASE("Lighting with the eye in the path of the reflection vector",
   RT::Vector eye = RT::vector(0, -sqrt(2) / 2, -sqrt(2) / 2);
   RT::Vector normal = RT::vector(0, 0, -1);
   RT::Light light = RT::Light(RT::point(0, 10, -10), RT::color(1, 1, 1));
-  auto result = lighting(m, light, position, eye, normal);
+  RT::Sphere s(RT::identityMatrix<4>(), m);
+  auto result = s.lighting(light, position, eye, normal);
   REQUIRE(result == RT::color(1.6364, 1.6364, 1.6364));
 }
 
@@ -120,7 +125,8 @@ TEST_CASE("Lighting with the light behind the surface", "[Material]") {
   RT::Vector eye = RT::vector(0, 0, -1);
   RT::Vector normal = RT::vector(0, 0, -1);
   RT::Light light = RT::Light(RT::point(0, 0, 10), RT::color(1, 1, 1));
-  auto result = lighting(m, light, position, eye, normal);
+  RT::Sphere s(RT::identityMatrix<4>(), m);
+  auto result = s.lighting(light, position, eye, normal);
   REQUIRE(result == RT::color(0.1, 0.1, 0.1));
 }
 
@@ -163,10 +169,10 @@ TEST_CASE("Lighting with the surface in shadow", "[Intersection]") {
   RT::Vector eye = RT::vector(0, 0, -1);
   RT::Vector normal = RT::vector(0, 0, -1);
   RT::Light light = RT::Light(RT::point(0, 0, -10), RT::color(1, 1, 1));
-  RT::Sphere s;
+  RT::Sphere s(RT::identityMatrix<4>(), m);
   auto i = RT::Intersection(1, &s);
   bool inShadow = true;
-  auto result = lighting(m, light, position, eye, normal, inShadow);
+  auto result = s.lighting(light, position, eye, normal, inShadow);
   REQUIRE(result == RT::color(0.1, 0.1, 0.1));
 }
 

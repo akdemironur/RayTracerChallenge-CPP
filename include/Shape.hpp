@@ -36,6 +36,8 @@ public:
       : transformation(transformation), material(material){};
   Transformation transformation;
   Material material;
+  Tuple lighting(const Light &light, const Point &point, const Vector &eye,
+                 const Vector &normal, bool inShadow = false) const;
   Color patternAt(const Point &point) const;
   virtual Vector normalAt(const Point &point) const = 0;
   virtual std::vector<std::pair<double, const Shape *>>
@@ -85,7 +87,5 @@ std::vector<Intersection> intersections(Intersections... is) {
 }
 
 std::optional<Intersection> hit(const std::vector<Intersection> &xs);
-Tuple lighting(const Material &material, const Light &light, const Point &point,
-               const Vector &eye, const Vector &normal, bool inShadow = false);
 
 } // namespace RT

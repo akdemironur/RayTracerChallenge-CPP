@@ -52,8 +52,8 @@ Color World::shadeHit(const Computations &comps, int remaining) const {
 
   bool isShadowed = this->isShadowed(comps.overPoint);
 
-  return lighting(comps.object->material, light, comps.point, comps.eye,
-                  comps.normal, isShadowed);
+  return comps.object->lighting(light, comps.point, comps.eye, comps.normal,
+                                isShadowed);
 }
 
 Color World::colorAt(const Ray &ray) const {
