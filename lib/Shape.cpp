@@ -1,5 +1,6 @@
 #include "Shape.hpp"
 #include "Matrix.hpp"
+#include "Pattern.hpp"
 
 namespace RT {
 
@@ -12,6 +13,14 @@ Material::Material(Color color, double ambient, double diffuse, double specular,
     : color(color), ambient(ambient), diffuse(diffuse), specular(specular),
       shininess(shininess) {}
 
+Material::Material(const Material &m)
+    : color(m.color), ambient(m.ambient), diffuse(m.diffuse),
+      specular(m.specular), shininess(m.shininess), pattern() {
+  if (m.pattern) {
+    pattern = m.pattern->clone();
+  }
+}
+
 bool Material::operator==(const Material &m) const {
   return color == m.color && isEqual(ambient, m.ambient) &&
          isEqual(diffuse, m.diffuse) && isEqual(specular, m.specular) &&
@@ -19,6 +28,14 @@ bool Material::operator==(const Material &m) const {
 }
 
 bool Material::operator!=(const Material &m) const { return !(*this == m); }
+
+Color Shape::patternAt(const Point &point) const {
+  assert(material.pattern != nullptr && "Pattern is null");
+  auto objectPoint = transformation.inverse() * point;
+  auto patternPoint = material.pattern->transformation.inverse() * objectPoint;
+
+  return material.pattern->patternAt(patternPoint);
+}
 
 Vector Sphere::normalAt(const Point &p) const {
   auto objectPoint = transformation.inverse() * p;
@@ -32,7 +49,14 @@ Vector Plane::normalAt(const Point &p) const { return vector(0, 1, 0); }
 
 Tuple lighting(const Material &material, const Light &light, const Point &point,
                const Vector &eye, const Vector &normal, bool inShadow) {
-  auto effectiveColor = hadamard(material.color, light.intensity);
+  RT::Color localcolor;
+  if (material.pattern) {
+    localcolor = material.pattern->patternAt(point);
+  } else {
+    localcolor = material.color;
+  }
+
+  auto effectiveColor = hadamard(localcolor, light.intensity);
   auto ambient = effectiveColor * material.ambient;
 
   if (inShadow) {
@@ -112,6 +136,30 @@ Computations::Computations(const Intersection &i, const Ray &r) {
     inside = false;
   }
   overPoint = point + normal * EPSILON;
+}
+
+Material &Material::operator=(const Material &m) {
+  color = m.color;
+  ambient = m.ambient;
+  diffuse = m.diffuse;
+  specular = m.specular;
+  shininess = m.shininess;
+  if (m.pattern) {
+    pattern = m.pattern->clone();
+  }
+  return *this;
+}
+
+Material &Material::operator=(Material &&m) noexcept {
+  color = m.color;
+  ambient = m.ambient;
+  diffuse = m.diffuse;
+  specular = m.specular;
+  shininess = m.shininess;
+  if (m.pattern) {
+    pattern = std::move(m.pattern);
+  }
+  return *this;
 }
 
 } // namespace RT

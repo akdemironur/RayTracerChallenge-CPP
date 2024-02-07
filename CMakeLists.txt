@@ -38,7 +38,7 @@ add_library             ( Ray lib/Ray.cpp)
 target_link_libraries   ( Ray Tuple )
 
 add_library             ( Shape lib/Shape.cpp)
-target_link_libraries   ( Shape Tuple Ray )
+target_link_libraries   ( Shape Tuple Ray Pattern )
 
 
 add_library             ( Light lib/Light.cpp)
@@ -49,6 +49,9 @@ target_link_libraries   ( World Shape Light )
 
 add_library             ( Camera lib/Camera.cpp)
 target_link_libraries   ( Camera Ray Canvas World )
+
+add_library             ( Pattern lib/Pattern.cpp)
+target_link_libraries   ( Pattern Tuple )
 
 add_executable(RayTest tests/RayTest.cpp)
 target_link_libraries(RayTest PRIVATE Catch2::Catch2WithMain Shape )
@@ -65,6 +68,10 @@ add_test(NAME WorldTest COMMAND WorldTest)
 add_executable(CameraTest tests/CameraTest.cpp)
 target_link_libraries(CameraTest PRIVATE Catch2::Catch2WithMain Camera )
 add_test(NAME CameraTest COMMAND CameraTest)
+
+add_executable(PatternTest tests/PatternTest.cpp)
+target_link_libraries(PatternTest PRIVATE Catch2::Catch2WithMain Shape Light )
+add_test(NAME PatternTest COMMAND PatternTest)
 
 add_executable          ( RT src/RT.cpp )
 target_link_libraries   ( RT Camera )

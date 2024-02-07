@@ -1,9 +1,11 @@
 #pragma once
 #include "Light.hpp"
 #include "Matrix.hpp"
+#include "Pattern.hpp"
 #include "Ray.hpp"
 #include "Tuple.hpp"
 #include "Util.hpp"
+#include <memory>
 #include <optional>
 #include <utility>
 #include <variant>
@@ -14,13 +16,17 @@ public:
   Material();
   Material(Color color, double ambient, double diffuse, double specular,
            double shininess);
+  Material(const Material &m);
   Color color;
   double ambient;
   double diffuse;
   double specular;
   double shininess;
+  std::unique_ptr<Pattern> pattern;
   bool operator==(const Material &m) const;
   bool operator!=(const Material &m) const;
+  Material &operator=(const Material &m);
+  Material &operator=(Material &&m) noexcept;
 };
 
 class Shape {
@@ -30,6 +36,7 @@ public:
       : transformation(transformation), material(material){};
   Transformation transformation;
   Material material;
+  Color patternAt(const Point &point) const;
   virtual Vector normalAt(const Point &point) const = 0;
   virtual std::vector<std::pair<double, const Shape *>>
   intersect(const Ray &ray) const = 0;

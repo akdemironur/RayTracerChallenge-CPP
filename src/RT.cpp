@@ -43,7 +43,7 @@ int main() {
   left->material.specular = 0.3;
 
   std::unique_ptr<RT::Shape> bot = std::make_unique<RT::Plane>();
-  bot->transformation = RT::translation(0, 1, 0);
+  bot->transformation = RT::translation(0, 0.4, 0);
 
   auto world = RT::World(false);
   world.light = RT::Light(RT::point(-10, 10, -10), RT::color(1, 1, 1));
