@@ -1,5 +1,4 @@
 #include "Ray.hpp"
-#include "Intersection.hpp"
 #include "Matrix.hpp"
 #include "Shape.hpp"
 #include <catch2/catch_test_macros.hpp>
@@ -23,7 +22,7 @@ TEST_CASE("Computing a point from a distance", "[Ray]") {
 TEST_CASE("A ray intersects a sphere at two points", "[Ray]") {
   RT::Ray r(RT::point(0, 0, -5), RT::vector(0, 0, 1));
   RT::Sphere s;
-  auto xs = intersect(s, r);
+  auto xs = s.intersect(r);
   REQUIRE(xs.size() == 2);
   REQUIRE(xs[0].first == 4.0);
   REQUIRE(xs[1].first == 6.0);
@@ -32,7 +31,7 @@ TEST_CASE("A ray intersects a sphere at two points", "[Ray]") {
 TEST_CASE("A ray intersects a sphere at a tangent", "[Ray]") {
   RT::Ray r(RT::point(0, 1, -5), RT::vector(0, 0, 1));
   RT::Sphere s;
-  auto xs = intersect(s, r);
+  auto xs = s.intersect(r);
   REQUIRE(xs.size() == 2);
   REQUIRE(xs[0].first == 5.0);
   REQUIRE(xs[1].first == 5.0);
@@ -41,14 +40,14 @@ TEST_CASE("A ray intersects a sphere at a tangent", "[Ray]") {
 TEST_CASE("A ray misses a sphere", "[Ray]") {
   RT::Ray r(RT::point(0, 2, -5), RT::vector(0, 0, 1));
   RT::Sphere s;
-  auto xs = intersect(s, r);
+  auto xs = s.intersect(r);
   REQUIRE(xs.size() == 0);
 }
 
 TEST_CASE("A ray originates inside a sphere", "[Ray]") {
   RT::Ray r(RT::point(0, 0, 0), RT::vector(0, 0, 1));
   RT::Sphere s;
-  auto xs = intersect(s, r);
+  auto xs = s.intersect(r);
   REQUIRE(xs.size() == 2);
   REQUIRE(xs[0].first == -1.0);
   REQUIRE(xs[1].first == 1.0);
@@ -57,7 +56,7 @@ TEST_CASE("A ray originates inside a sphere", "[Ray]") {
 TEST_CASE("A sphere is behind a ray", "[Ray]") {
   RT::Ray r(RT::point(0, 0, 5), RT::vector(0, 0, 1));
   RT::Sphere s;
-  auto xs = intersect(s, r);
+  auto xs = s.intersect(r);
   REQUIRE(xs.size() == 2);
   REQUIRE(xs[0].first == -6.0);
   REQUIRE(xs[1].first == -4.0);
@@ -83,7 +82,7 @@ TEST_CASE("Aggregating intersections", "[Intersection]") {
 TEST_CASE("Intersect sets the object on the intersection", "[Intersection]") {
   RT::Ray r(RT::point(0, 0, -5), RT::vector(0, 0, 1));
   RT::Sphere s;
-  auto xs = intersect(s, r);
+  auto xs = s.intersect(r);
   REQUIRE(xs.size() == 2);
   REQUIRE(xs[0].second == &s);
   REQUIRE(xs[1].second == &s);
@@ -169,7 +168,7 @@ TEST_CASE("Intersecting a scaled sphere with a ray", "[Sphere]") {
   RT::Ray r(RT::point(0, 0, -5), RT::vector(0, 0, 1));
   RT::Sphere s;
   s.transformation = RT::scaling(2, 2, 2);
-  auto xs = intersect(s, r);
+  auto xs = s.intersect(r);
   REQUIRE(xs.size() == 2);
   REQUIRE(xs[0].first == 3);
   REQUIRE(xs[1].first == 7);
@@ -179,6 +178,6 @@ TEST_CASE("Intersecting a translated sphere with a ray", "[Sphere]") {
   RT::Ray r(RT::point(0, 0, -5), RT::vector(0, 0, 1));
   RT::Sphere s;
   s.transformation = RT::translation(5, 0, 0);
-  auto xs = intersect(s, r);
+  auto xs = s.intersect(r);
   REQUIRE(xs.size() == 0);
 }

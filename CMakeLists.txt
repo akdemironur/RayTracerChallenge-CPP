@@ -38,27 +38,24 @@ add_library             ( Ray lib/Ray.cpp)
 target_link_libraries   ( Ray Tuple )
 
 add_library             ( Shape lib/Shape.cpp)
-target_link_libraries   ( Shape Tuple )
-
-add_library             ( Intersection lib/Intersection.cpp)
-target_link_libraries   ( Intersection Ray Shape )
+target_link_libraries   ( Shape Tuple Ray )
 
 
 add_library             ( Light lib/Light.cpp)
 target_link_libraries   ( Light Tuple )
 
 add_library             ( World lib/World.cpp)
-target_link_libraries   ( World Shape Light Intersection )
+target_link_libraries   ( World Shape Light )
 
 add_library             ( Camera lib/Camera.cpp)
 target_link_libraries   ( Camera Ray Canvas World )
 
 add_executable(RayTest tests/RayTest.cpp)
-target_link_libraries(RayTest PRIVATE Catch2::Catch2WithMain Intersection )
+target_link_libraries(RayTest PRIVATE Catch2::Catch2WithMain Shape )
 add_test(NAME RayTest COMMAND RayTest)
 
 add_executable(ShapeTest tests/ShapeTest.cpp)
-target_link_libraries(ShapeTest PRIVATE Catch2::Catch2WithMain Shape Light Intersection )
+target_link_libraries(ShapeTest PRIVATE Catch2::Catch2WithMain Shape Light )
 add_test(NAME ShapeTest COMMAND ShapeTest)
 
 add_executable(WorldTest tests/WorldTest.cpp)
@@ -70,4 +67,4 @@ target_link_libraries(CameraTest PRIVATE Catch2::Catch2WithMain Camera )
 add_test(NAME CameraTest COMMAND CameraTest)
 
 add_executable          ( RT src/RT.cpp )
-target_link_libraries   ( RT Intersection Camera )
+target_link_libraries   ( RT Camera )

@@ -1,8 +1,12 @@
 #pragma once
 #include "Light.hpp"
 #include "Matrix.hpp"
+#include "Ray.hpp"
 #include "Tuple.hpp"
 #include "Util.hpp"
+#include <optional>
+#include <utility>
+#include <variant>
 namespace RT {
 
 class Material {
@@ -19,17 +23,61 @@ public:
   bool operator!=(const Material &m) const;
 };
 
-class Sphere {
+class Shape {
 public:
-  Sphere();
-  Sphere(const Transformation &transformation, const Material &material);
-  bool operator==(const Sphere &s) const;
-  bool operator!=(const Sphere &s) const;
-  Vector normalAt(const Point &point) const;
+  Shape() : transformation(identityMatrix<4>()), material(Material()){};
+  Shape(const Transformation &transformation, const Material &material)
+      : transformation(transformation), material(material){};
   Transformation transformation;
   Material material;
+  virtual Vector normalAt(const Point &point) const = 0;
+  virtual std::vector<std::pair<double, const Shape *>>
+  intersect(const Ray &ray) const = 0;
+  virtual ~Shape() = default;
 };
 
+class Sphere : public Shape {
+public:
+  Sphere() : Shape(){};
+  Sphere(const Transformation &transformation, const Material &material)
+      : Shape(transformation, material){};
+  Vector normalAt(const Point &point) const override;
+  std::vector<std::pair<double, const Shape *>>
+  intersect(const Ray &ray) const override;
+  ~Sphere() = default;
+};
+
+class Plane : public Shape {
+public:
+  Plane() : Shape(){};
+  Plane(const Transformation &transformation, const Material &material)
+      : Shape(transformation, material){};
+  Vector normalAt(const Point &point) const override;
+  std::vector<std::pair<double, const Shape *>>
+  intersect(const Ray &ray) const override;
+  ~Plane() = default;
+};
+
+using Intersection = std::pair<double, const Shape *>;
+
+class Computations {
+public:
+  Computations(const Intersection &i, const Ray &r);
+  double t;
+  const Shape *object;
+  Point point;
+  Point overPoint;
+  Vector eye;
+  Vector normal;
+  bool inside;
+};
+
+template <typename... Intersections>
+std::vector<Intersection> intersections(Intersections... is) {
+  return std::vector<Intersection>{is...};
+}
+
+std::optional<Intersection> hit(const std::vector<Intersection> &xs);
 Tuple lighting(const Material &material, const Light &light, const Point &point,
                const Vector &eye, const Vector &normal, bool inShadow = false);
 

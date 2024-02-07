@@ -8,28 +8,33 @@ World::World(bool defaultWorld)
     : light{point(-10, 10, -10), color(1, 1, 1)}, objects{} {
 
   if (defaultWorld) {
-    objects.push_back(Sphere());
-    objects.push_back(Sphere());
+    objects.push_back(std::make_unique<Sphere>(Sphere()));
+    objects.push_back(std::make_unique<Sphere>(Sphere()));
 
-    objects[0].material.color = color(0.8, 1.0, 0.6);
-    objects[0].material.diffuse = 0.7;
-    objects[0].material.specular = 0.2;
-    objects[1].transformation = scaling(0.5, 0.5, 0.5);
+    objects[0]->material.color = color(0.8, 1.0, 0.6);
+    objects[0]->material.diffuse = 0.7;
+    objects[0]->material.specular = 0.2;
+    objects[1]->transformation = scaling(0.5, 0.5, 0.5);
   }
 }
 
-bool World::contains(const Sphere &object) const {
-  return std::find(objects.begin(), objects.end(), object) != objects.end();
+bool World::contains(const Shape &object) const {
+  return std::find_if(objects.begin(), objects.end(), [&](const auto &obj) {
+           return obj.get()->transformation == object.transformation &&
+                  obj.get()->material == object.material;
+         }) != objects.end();
 }
 
-void World::add(const Sphere &object) { objects.push_back(object); }
+void World::add(std::unique_ptr<Shape> object) {
+  objects.push_back(std::move(object));
+}
 
 int World::count() const { return objects.size(); }
 
 std::vector<Intersection> World::intersect(const Ray &ray) const {
   std::vector<Intersection> result;
   for (const auto &object : objects) {
-    auto xs = RT::intersect(object, ray);
+    auto xs = object->intersect(ray);
     for (auto &x : xs) {
       result.push_back(x);
     }

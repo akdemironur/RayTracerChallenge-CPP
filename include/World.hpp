@@ -1,8 +1,9 @@
 #pragma once
-#include "Intersection.hpp"
 #include "Light.hpp"
 #include "Shape.hpp"
+#include <memory>
 #include <optional>
+#include <variant>
 #include <vector>
 
 namespace RT {
@@ -11,8 +12,8 @@ class World {
 public:
   World(bool defaultWorld = true);
   Light light;
-  void add(const Sphere &object);
-  bool contains(const Sphere &object) const;
+  void add(std::unique_ptr<Shape> object);
+  bool contains(const Shape &object) const;
   int count() const;
   std::vector<Intersection> intersect(const Ray &ray) const;
   Color shadeHit(const Computations &comps, int remaining = 5) const;
@@ -20,7 +21,7 @@ public:
   bool isShadowed(const Point &point) const;
 
 private:
-  std::vector<Sphere> objects;
+  std::vector<std::unique_ptr<Shape>> objects;
 };
 
 } // namespace RT

@@ -1,5 +1,4 @@
 #include "Shape.hpp"
-#include "Intersection.hpp"
 #include "Ray.hpp"
 #include <catch2/catch_test_macros.hpp>
 
@@ -173,10 +172,52 @@ TEST_CASE("Lighting with the surface in shadow", "[Intersection]") {
 
 TEST_CASE("The hit should offset the point", "[Intersection]") {
   auto r = RT::Ray(RT::point(0, 0, -5), RT::vector(0, 0, 1));
-  auto s = RT::Sphere();
+  auto s = RT::Sphere(); // Replace with a concrete subclass of RT::Shape
   s.transformation = RT::translation(0, 0, 1);
   auto i = RT::Intersection(5, &s);
   auto comps = RT::Computations(i, r);
   REQUIRE(comps.overPoint.z < -EPSILON / 2);
   REQUIRE(comps.point.z > comps.overPoint.z);
+}
+
+TEST_CASE("The normal of a plane is constant everywhere", "[Plane]") {
+  RT::Plane p;
+  auto n1 = p.normalAt(RT::point(0, 0, 0));
+  auto n2 = p.normalAt(RT::point(10, 0, -10));
+  auto n3 = p.normalAt(RT::point(-5, 0, 150));
+  REQUIRE(n1 == RT::vector(0, 1, 0));
+  REQUIRE(n2 == RT::vector(0, 1, 0));
+  REQUIRE(n3 == RT::vector(0, 1, 0));
+}
+
+TEST_CASE("Intersect with a ray parallel to the plane", "[Plane]") {
+  RT::Plane p;
+  auto r = RT::Ray(RT::point(0, 10, 0), RT::vector(0, 0, 1));
+  auto xs = p.intersect(r);
+  REQUIRE(xs.size() == 0);
+}
+
+TEST_CASE("Intersect with a coplanar ray", "[Plane]") {
+  RT::Plane p;
+  auto r = RT::Ray(RT::point(0, 0, 0), RT::vector(0, 0, 1));
+  auto xs = p.intersect(r);
+  REQUIRE(xs.size() == 0);
+}
+
+TEST_CASE("A ray intersecting a plane from above", "[Plane]") {
+  RT::Plane p;
+  auto r = RT::Ray(RT::point(0, 1, 0), RT::vector(0, -1, 0));
+  auto xs = p.intersect(r);
+  REQUIRE(xs.size() == 1);
+  REQUIRE(xs[0].first == 1);
+  REQUIRE(xs[0].second == &p);
+}
+
+TEST_CASE("A ray intersecting a plane from below", "[Plane]") {
+  RT::Plane p;
+  auto r = RT::Ray(RT::point(0, -1, 0), RT::vector(0, 1, 0));
+  auto xs = p.intersect(r);
+  REQUIRE(xs.size() == 1);
+  REQUIRE(xs[0].first == 1);
+  REQUIRE(xs[0].second == &p);
 }

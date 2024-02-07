@@ -1,6 +1,5 @@
 #define private public
 #include "World.hpp"
-#include "Intersection.hpp"
 #include <catch2/catch_test_macros.hpp>
 
 TEST_CASE("Creating a world") {
@@ -35,7 +34,7 @@ TEST_CASE("Intersect a world with a ray") {
 TEST_CASE("Shading an intersection") {
   RT::World w;
   auto r = RT::Ray(RT::point(0, 0, -5), RT::vector(0, 0, 1));
-  auto shape = &w.objects[0];
+  auto shape = w.objects[0].get();
   auto i = RT::Intersection(4, shape);
   auto comps = RT::Computations(i, r);
   auto c = w.shadeHit(comps);
@@ -46,7 +45,7 @@ TEST_CASE("Shading an intersection from the inside") {
   RT::World w;
   w.light = RT::Light(RT::point(0, 0.25, 0), RT::color(1, 1, 1));
   auto r = RT::Ray(RT::point(0, 0, 0), RT::vector(0, 0, 1));
-  auto shape = &w.objects[1];
+  auto shape = w.objects[1].get();
   auto i = RT::Intersection(0.5, shape);
   auto comps = RT::Computations(i, r);
   auto c = w.shadeHit(comps);
@@ -69,9 +68,9 @@ TEST_CASE("The color when a ray hits") {
 
 TEST_CASE("The color with an intersection behind the ray") {
   RT::World w;
-  auto outer = &w.objects[0];
+  auto outer = w.objects[0].get();
   outer->material.ambient = 1;
-  auto inner = &w.objects[1];
+  auto inner = w.objects[1].get();
   inner->material.ambient = 1;
   auto r = RT::Ray(RT::point(0, 0, 0.75), RT::vector(0, 0, -1));
   auto c = w.colorAt(r);
@@ -106,10 +105,11 @@ TEST_CASE("shadeHit() is given an intersection in shadow") {
   RT::World w(false);
   w.light = RT::Light(RT::point(0, 0, -10), RT::color(1, 1, 1));
   auto s1 = RT::Sphere();
-  w.add(s1);
+  w.add(std::make_unique<RT::Sphere>(
+      s1)); // Fix: Allocate an object of the concrete class RT::Sphere
   auto s2 = RT::Sphere();
   s2.transformation = RT::translation(0, 0, 10);
-  w.add(s2);
+  w.add(std::make_unique<RT::Sphere>(s2));
   auto r = RT::Ray(RT::point(0, 0, 5), RT::vector(0, 0, 1));
   auto i = RT::Intersection(4, &s2);
   auto comps = RT::Computations(i, r);

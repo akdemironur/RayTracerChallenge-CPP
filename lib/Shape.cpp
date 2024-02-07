@@ -20,11 +20,6 @@ bool Material::operator==(const Material &m) const {
 
 bool Material::operator!=(const Material &m) const { return !(*this == m); }
 
-Sphere::Sphere() : transformation(identityMatrix<4>()), material() {}
-
-Sphere::Sphere(const Transformation &transformation, const Material &material)
-    : transformation(transformation), material(material) {}
-
 Vector Sphere::normalAt(const Point &p) const {
   auto objectPoint = transformation.inverse() * p;
   auto objectNormal = objectPoint - point(0, 0, 0);
@@ -32,6 +27,8 @@ Vector Sphere::normalAt(const Point &p) const {
   worldNormal.w = 0;
   return worldNormal.norm();
 }
+
+Vector Plane::normalAt(const Point &p) const { return vector(0, 1, 0); }
 
 Tuple lighting(const Material &material, const Light &light, const Point &point,
                const Vector &eye, const Vector &normal, bool inShadow) {
@@ -58,10 +55,63 @@ Tuple lighting(const Material &material, const Light &light, const Point &point,
   return ambient + diffuse + specular;
 }
 
-bool Sphere::operator==(const Sphere &s) const {
-  return transformation == s.transformation && material == s.material;
+std::vector<Intersection> Sphere::intersect(const Ray &r) const {
+  std::vector<Intersection> xs;
+  auto ray = r.transform(transformation.inverse());
+  auto sphere_to_ray = ray.origin - point(0, 0, 0);
+  auto a = dot(ray.direction, ray.direction);
+  auto b = 2 * dot(ray.direction, sphere_to_ray);
+  auto c = dot(sphere_to_ray, sphere_to_ray) - 1;
+  auto discriminant = b * b - 4 * a * c;
+  if (discriminant >= 0) {
+    xs.push_back(Intersection((-b - sqrt(discriminant)) / (2 * a), this));
+    xs.push_back(Intersection((-b + sqrt(discriminant)) / (2 * a), this));
+  }
+  return xs;
+}
+std::vector<Intersection> Plane::intersect(const Ray &r) const {
+  std::vector<Intersection> xs;
+  auto ray = r.transform(transformation.inverse());
+
+  if (std::abs(ray.direction.y) < EPSILON) {
+    return xs;
+  }
+
+  auto t = -ray.origin.y / ray.direction.y;
+  xs.push_back(Intersection(t, this));
+
+  return xs;
 }
 
-bool Sphere::operator!=(const Sphere &s) const { return !(*this == s); }
+std::optional<Intersection> hit(const std::vector<Intersection> &xs) {
+  std::optional<Intersection> result;
+  for (const auto &i : xs) {
+    if (i.first >= 0) {
+      if (result) {
+        if (i.first < result->first) {
+          result.emplace(i.first, i.second);
+        }
+      } else {
+        result.emplace(i.first, i.second);
+      }
+    }
+  }
+  return result;
+}
+
+Computations::Computations(const Intersection &i, const Ray &r) {
+  t = i.first;
+  object = i.second;
+  point = r.position(t);
+  eye = -r.direction;
+  normal = object->normalAt(point);
+  if (dot(eye, normal) < 0) {
+    inside = true;
+    normal = -normal;
+  } else {
+    inside = false;
+  }
+  overPoint = point + normal * EPSILON;
+}
 
 } // namespace RT
