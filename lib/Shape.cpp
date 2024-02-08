@@ -19,9 +19,9 @@ Material::Material(Color color, double ambient, double diffuse, double specular,
 
 Material::Material(const Material &m)
     : color(m.color), ambient(m.ambient), diffuse(m.diffuse),
-      specular(m.specular), shininess(m.shininess), pattern(),
-      reflective(m.reflective), transparency(m.transparency),
-      refractiveIndex(m.refractiveIndex) {
+      specular(m.specular), shininess(m.shininess), reflective(m.reflective),
+      transparency(m.transparency), refractiveIndex(m.refractiveIndex),
+      pattern() {
   if (m.pattern) {
     pattern = m.pattern->clone();
   }
