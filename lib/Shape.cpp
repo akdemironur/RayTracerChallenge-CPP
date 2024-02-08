@@ -1,13 +1,14 @@
 #include "Shape.hpp"
 #include "Matrix.hpp"
 #include "Pattern.hpp"
+#include <istream>
 #include <vector>
 
 namespace RT {
 
 Material::Material()
     : color(RT::color(1, 1, 1)), ambient(0.1), diffuse(0.9), specular(0.9),
-      shininess(200), reflective(0), transparency(0), refractiveIndex(1) {}
+      shininess(200), reflective(0), transparency(0), refractiveIndex(1.0) {}
 
 Material::Material(Color color, double ambient, double diffuse, double specular,
                    double shininess, double reflectivity, double transparency,
@@ -18,7 +19,9 @@ Material::Material(Color color, double ambient, double diffuse, double specular,
 
 Material::Material(const Material &m)
     : color(m.color), ambient(m.ambient), diffuse(m.diffuse),
-      specular(m.specular), shininess(m.shininess), pattern() {
+      specular(m.specular), shininess(m.shininess), pattern(),
+      reflective(m.reflective), transparency(m.transparency),
+      refractiveIndex(m.refractiveIndex) {
   if (m.pattern) {
     pattern = m.pattern->clone();
   }
@@ -27,7 +30,9 @@ Material::Material(const Material &m)
 bool Material::operator==(const Material &m) const {
   return color == m.color && isEqual(ambient, m.ambient) &&
          isEqual(diffuse, m.diffuse) && isEqual(specular, m.specular) &&
-         isEqual(shininess, m.shininess);
+         isEqual(shininess, m.shininess) && isEqual(reflective, m.reflective) &&
+         isEqual(transparency, m.transparency) &&
+         isEqual(refractiveIndex, m.refractiveIndex);
 }
 
 bool Material::operator!=(const Material &m) const { return !(*this == m); }
@@ -183,6 +188,9 @@ Material &Material::operator=(const Material &m) {
   diffuse = m.diffuse;
   specular = m.specular;
   shininess = m.shininess;
+  reflective = m.reflective;
+  transparency = m.transparency;
+  refractiveIndex = m.refractiveIndex;
   if (m.pattern) {
     pattern = m.pattern->clone();
   }
@@ -195,6 +203,9 @@ Material &Material::operator=(Material &&m) noexcept {
   diffuse = m.diffuse;
   specular = m.specular;
   shininess = m.shininess;
+  reflective = m.reflective;
+  transparency = m.transparency;
+  refractiveIndex = m.refractiveIndex;
   if (m.pattern) {
     pattern = std::move(m.pattern);
   }
@@ -208,6 +219,22 @@ Sphere glassSphere(Transformation transform, double transparency,
   s.material.transparency = transparency;
   s.material.refractiveIndex = refractiveIndex;
   return s;
+}
+
+double Computations::schlick() const {
+  auto cos = dot(eye, normal);
+  if (n1 > n2) {
+    auto n = n1 / n2;
+    auto sin2_t = n * n * (1 - cos * cos);
+    if (sin2_t > 1) {
+      return 1.0;
+    }
+    auto cos_t = std::sqrt(1 - sin2_t);
+    cos = cos_t;
+  }
+  auto r0 = std::pow((n1 - n2) / (n1 + n2), 2);
+
+  return r0 + (1 - r0) * std::pow(1 - cos, 5);
 }
 
 } // namespace RT

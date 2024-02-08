@@ -3,6 +3,7 @@
 #include <array>
 #include <cassert>
 #include <cmath>
+#include <iostream>
 namespace RT {
 class Tuple {
 private:
@@ -23,6 +24,7 @@ public:
   Tuple operator/(const double &scalar) const;
   bool operator==(const Tuple &t) const;
   bool operator!=(const Tuple &t) const;
+  friend std::ostream &operator<<(std::ostream &os, const Tuple &t);
   Tuple &operator=(const Tuple &t);
   const double &operator()(int i) const;
   double &operator()(int i);

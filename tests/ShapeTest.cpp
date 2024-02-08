@@ -286,3 +286,35 @@ TEST_CASE("The under point is offset below the surface", "[Intersection]") {
   REQUIRE(comps.underPoint.z > EPSILON / 2);
   REQUIRE(comps.point.z < comps.underPoint.z);
 }
+
+TEST_CASE("The Schlick approximation under total internal reflection",
+          "[Intersection]") {
+  auto s = RT::glassSphere();
+  auto r = RT::Ray(RT::point(0, 0, sqrt(2) / 2), RT::vector(0, 1, 0));
+  auto xs = RT::intersections(RT::Intersection(-sqrt(2) / 2, &s),
+                              RT::Intersection(sqrt(2) / 2, &s));
+  auto comps = RT::Computations(xs[1], r, xs);
+  auto reflectance = comps.schlick();
+  REQUIRE(reflectance == 1.0);
+}
+
+TEST_CASE("The Schlick approximation with a perpendicular viewing angle",
+          "[Intersection]") {
+  auto s = RT::glassSphere();
+  auto r = RT::Ray(RT::point(0, 0, 0), RT::vector(0, 1, 0));
+  auto xs =
+      RT::intersections(RT::Intersection(-1, &s), RT::Intersection(1, &s));
+  auto comps = RT::Computations(xs[1], r, xs);
+  auto reflectance = comps.schlick();
+  REQUIRE(RT::isEqual(reflectance, 0.04));
+}
+
+TEST_CASE("The Schlick approximation with small angle and n2 > n1",
+          "[Intersection]") {
+  auto s = RT::glassSphere();
+  auto r = RT::Ray(RT::point(0, 0.99, -2), RT::vector(0, 0, 1));
+  auto xs = RT::intersections(RT::Intersection(1.8589, &s));
+  auto comps = RT::Computations(xs[0], r, xs);
+  auto reflectance = comps.schlick();
+  REQUIRE(RT::isEqual(reflectance, 0.48873));
+}

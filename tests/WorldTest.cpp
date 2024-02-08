@@ -212,10 +212,10 @@ TEST_CASE("The refracted color under total internal reflection") {
 
 TEST_CASE("The refracted color with a refracted ray") {
   RT::World w;
-  auto a = w.objects[1].get();
+  auto a = w.objects[0].get();
   a->material.ambient = 1;
   a->material.pattern = std::make_unique<RT::TestPattern>(RT::TestPattern());
-  auto b = w.objects[0].get();
+  auto b = w.objects[1].get();
   b->material.transparency = 1.0;
   b->material.refractiveIndex = 1.5;
   auto r = RT::Ray(RT::point(0, 0, 0.1), RT::vector(0, 1, 0));
@@ -224,7 +224,7 @@ TEST_CASE("The refracted color with a refracted ray") {
       RT::Intersection(0.4899, b), RT::Intersection(0.9899, a));
   auto comps = RT::Computations(xs[2], r, xs);
   auto c = w.refractedColor(comps, 5);
-  REQUIRE(c == RT::color(0, 0, 0)); // WTF?
+  REQUIRE(c == RT::color(0, 0.99888, 0.04725));
 }
 
 TEST_CASE("shadeHit() with a transparent material") {
@@ -245,4 +245,25 @@ TEST_CASE("shadeHit() with a transparent material") {
   auto comps = RT::Computations(xs[0], r, xs);
   auto c = w.shadeHit(comps, 5);
   REQUIRE(c == RT::color(0.93642, 0.68642, 0.68642));
+}
+
+TEST_CASE("shadeHit() with a reflective, transparent material") {
+  RT::World w;
+  auto floor = RT::Plane();
+  floor.transformation = RT::translation(0, -1, 0);
+  floor.material.reflective = 0.5;
+  floor.material.transparency = 0.5;
+  floor.material.refractiveIndex = 1.5;
+  w.add(std::make_unique<RT::Plane>(floor));
+  auto ball = RT::Sphere();
+  ball.material.color = RT::color(1, 0, 0);
+  ball.material.ambient = 0.5;
+  ball.transformation = RT::translation(0, -3.5, -0.5);
+  w.add(std::make_unique<RT::Sphere>(ball));
+  auto xs = RT::intersections(RT::Intersection(sqrt(2), &floor));
+  auto r =
+      RT::Ray(RT::point(0, 0, -3), RT::vector(0, -sqrt(2) / 2, sqrt(2) / 2));
+  auto comps = RT::Computations(xs[0], r, xs);
+  auto c = w.shadeHit(comps, 5);
+  REQUIRE(c == RT::color(0.93391, 0.69643, 0.69243));
 }

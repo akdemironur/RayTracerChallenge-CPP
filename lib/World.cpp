@@ -81,6 +81,13 @@ Color World::shadeHit(const Computations &comps, int remaining) const {
                                         comps.normal, isShadowed);
   auto reflected = reflectedColor(comps, remaining);
   auto refracted = refractedColor(comps, remaining);
+
+  auto material = comps.object->material;
+  if (material.reflective != 0 && material.transparency != 0) {
+    auto reflectance = comps.schlick();
+    return surface + reflected * reflectance + refracted * (1 - reflectance);
+  }
+
   return refracted + reflected + surface;
 }
 

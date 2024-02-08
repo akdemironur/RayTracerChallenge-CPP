@@ -99,4 +99,9 @@ Tuple Tuple::reflect(const Tuple &normal) const {
   return *this - normal * 2 * dot(*this, normal);
 }
 
+std::ostream &operator<<(std::ostream &os, const Tuple &t) {
+  os << "Tuple(" << t.x << ", " << t.y << ", " << t.z << ", " << t.w << ")";
+  return os;
+}
+
 } // namespace RT

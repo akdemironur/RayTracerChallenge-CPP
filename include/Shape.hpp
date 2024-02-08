@@ -86,6 +86,7 @@ public:
   Vector eye;
   Vector normal;
   Vector reflect;
+  double schlick() const;
   bool inside;
 };
 
