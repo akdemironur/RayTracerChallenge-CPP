@@ -17,7 +17,9 @@ public:
   int count() const;
   std::vector<Intersection> intersect(const Ray &ray) const;
   Color shadeHit(const Computations &comps, int remaining = 5) const;
-  Color colorAt(const Ray &ray) const;
+  Color colorAt(const Ray &ray, int remaining = 5) const;
+  Color reflectedColor(const Computations &comps, int remaining = 5) const;
+  Color refractedColor(const Computations &comps, int remaining = 5) const;
   bool isShadowed(const Point &point) const;
 
 private:

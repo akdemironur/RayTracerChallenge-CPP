@@ -15,13 +15,17 @@ class Material {
 public:
   Material();
   Material(Color color, double ambient, double diffuse, double specular,
-           double shininess);
+           double shininess, double reflective, double transparency,
+           double refractiveIndex);
   Material(const Material &m);
   Color color;
   double ambient;
   double diffuse;
   double specular;
   double shininess;
+  double reflective;
+  double transparency;
+  double refractiveIndex;
   std::unique_ptr<Pattern> pattern;
   bool operator==(const Material &m) const;
   bool operator!=(const Material &m) const;
@@ -71,13 +75,17 @@ using Intersection = std::pair<double, const Shape *>;
 
 class Computations {
 public:
-  Computations(const Intersection &i, const Ray &r);
+  Computations(const Intersection &i, const Ray &r,
+               const std::vector<Intersection> &xs = {});
   double t;
+  double n1, n2;
   const Shape *object;
   Point point;
   Point overPoint;
+  Point underPoint;
   Vector eye;
   Vector normal;
+  Vector reflect;
   bool inside;
 };
 
@@ -87,5 +95,8 @@ std::vector<Intersection> intersections(Intersections... is) {
 }
 
 std::optional<Intersection> hit(const std::vector<Intersection> &xs);
+
+Sphere glassSphere(Transformation transform = identityMatrix<4>(),
+                   double transparency = 1.0, double refractiveIndex = 1.5);
 
 } // namespace RT

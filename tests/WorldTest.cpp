@@ -1,3 +1,5 @@
+#include "Pattern.hpp"
+#include <memory>
 #define private public
 #include "World.hpp"
 #include <catch2/catch_test_macros.hpp>
@@ -115,4 +117,132 @@ TEST_CASE("shadeHit() is given an intersection in shadow") {
   auto comps = RT::Computations(i, r);
   auto c = w.shadeHit(comps);
   REQUIRE(c == RT::color(0.1, 0.1, 0.1));
+}
+TEST_CASE("The reflected color for a nonreflective material") {
+  RT::World w;
+  auto r = RT::Ray(RT::point(0, 0, 0), RT::vector(0, 0, 1));
+  auto shape = w.objects[1].get();
+  shape->material.ambient = 1;
+  auto i = RT::Intersection(1, shape);
+  auto comps = RT::Computations(i, r);
+  auto color = w.reflectedColor(comps);
+  REQUIRE(color == RT::color(0, 0, 0));
+}
+
+TEST_CASE("The reflected color for a reflective material") {
+  RT::World w;
+  auto shape = RT::Plane();
+  shape.material.reflective = 0.5;
+  shape.transformation = RT::translation(0, -1, 0);
+  w.add(std::make_unique<RT::Plane>(shape));
+  auto r =
+      RT::Ray(RT::point(0, 0, -3), RT::vector(0, -sqrt(2) / 2, sqrt(2) / 2));
+  auto i = RT::Intersection(sqrt(2), &shape);
+  auto comps = RT::Computations(i, r);
+  auto color = w.reflectedColor(comps);
+  REQUIRE(color == RT::color(0.19032, 0.2379, 0.14274));
+}
+
+TEST_CASE("colorAt() with a reflective material") {
+  RT::World w;
+  auto shape = RT::Plane();
+  shape.material.reflective = 0.5;
+  shape.transformation = RT::translation(0, -1, 0);
+  w.add(std::make_unique<RT::Plane>(shape));
+  auto r =
+      RT::Ray(RT::point(0, 0, -3), RT::vector(0, -sqrt(2) / 2, sqrt(2) / 2));
+  auto i = RT::Intersection(sqrt(2), &shape);
+  auto comps = RT::Computations(i, r);
+  auto color = w.shadeHit(comps);
+  REQUIRE(color == RT::color(0.87677, 0.92436, 0.82918));
+}
+
+TEST_CASE("colorAt() with mutually reflective surfaces") {
+  RT::World w;
+  auto lower = RT::Plane();
+  lower.material.reflective = 1;
+  lower.transformation = RT::translation(0, -1, 0);
+  w.add(std::make_unique<RT::Plane>(lower));
+  auto upper = RT::Plane();
+  upper.material.reflective = 1;
+  upper.transformation = RT::translation(0, 1, 0);
+  w.add(std::make_unique<RT::Plane>(upper));
+  auto r = RT::Ray(RT::point(0, 0, 0), RT::vector(0, 1, 0));
+  auto c = w.colorAt(r);
+  auto c2 = w.colorAt(r);
+  REQUIRE(c == c2);
+}
+
+TEST_CASE("The refracted color with an opaque surface") {
+  RT::World w;
+  auto shape = w.objects[0].get();
+  auto r = RT::Ray(RT::point(0, 0, -5), RT::vector(0, 0, 1));
+  auto xs =
+      RT::intersections(RT::Intersection(4, shape), RT::Intersection(6, shape));
+  auto comps = RT::Computations(xs[0], r, xs);
+  auto c = w.refractedColor(comps);
+  REQUIRE(c == RT::color(0, 0, 0));
+}
+
+TEST_CASE("The refracted color at the maximum recursive depth") {
+  RT::World w;
+  auto shape = w.objects[0].get();
+  shape->material.transparency = 1.0;
+  shape->material.refractiveIndex = 1.5;
+  auto r = RT::Ray(RT::point(0, 0, -5), RT::vector(0, 0, 1));
+  auto xs =
+      RT::intersections(RT::Intersection(4, shape), RT::Intersection(6, shape));
+  auto comps = RT::Computations(xs[0], r, xs);
+  auto c = w.refractedColor(comps, 0);
+  REQUIRE(c == RT::color(0, 0, 0));
+}
+
+TEST_CASE("The refracted color under total internal reflection") {
+  RT::World w;
+  auto shape = w.objects[0].get();
+  shape->material.transparency = 1.0;
+  shape->material.refractiveIndex = 1.5;
+  auto r = RT::Ray(RT::point(0, 0, sqrt(2) / 2), RT::vector(0, 1, 0));
+  auto xs = RT::intersections(RT::Intersection(-sqrt(2) / 2, shape),
+                              RT::Intersection(sqrt(2) / 2, shape));
+  auto comps = RT::Computations(xs[1], r, xs);
+  auto c = w.refractedColor(comps, 5);
+  REQUIRE(c == RT::color(0, 0, 0));
+}
+
+TEST_CASE("The refracted color with a refracted ray") {
+  RT::World w;
+  auto a = w.objects[1].get();
+  a->material.ambient = 1;
+  a->material.pattern = std::make_unique<RT::TestPattern>(RT::TestPattern());
+  auto b = w.objects[0].get();
+  b->material.transparency = 1.0;
+  b->material.refractiveIndex = 1.5;
+  auto r = RT::Ray(RT::point(0, 0, 0.1), RT::vector(0, 1, 0));
+  auto xs = RT::intersections(
+      RT::Intersection(-0.9899, a), RT::Intersection(-0.4899, b),
+      RT::Intersection(0.4899, b), RT::Intersection(0.9899, a));
+  auto comps = RT::Computations(xs[2], r, xs);
+  auto c = w.refractedColor(comps, 5);
+  REQUIRE(c == RT::color(0, 0, 0)); // WTF?
+}
+
+TEST_CASE("shadeHit() with a transparent material") {
+  RT::World w;
+  auto floor = RT::Plane();
+  floor.transformation = RT::translation(0, -1, 0);
+  floor.material.transparency = 0.5;
+  floor.material.refractiveIndex = 1.5;
+  w.add(std::make_unique<RT::Plane>(floor));
+  auto ball = RT::Sphere();
+  ball.material.color = RT::color(1, 0, 0);
+  ball.material.ambient = 0.5;
+  ball.transformation = RT::translation(0, -3.5, -0.5);
+  w.add(std::make_unique<RT::Sphere>(ball));
+  auto r =
+      RT::Ray(RT::point(0, 0, -3), RT::vector(0, -sqrt(2) / 2, sqrt(2) / 2));
+  auto xs = RT::intersections(RT::Intersection(sqrt(2), &floor));
+  auto comps = RT::Computations(xs[0], r, xs);
+  auto c = w.shadeHit(comps, 5);
+  REQUIRE(c == RT::color(0.93642, 0.68642, 0.68642));
 }

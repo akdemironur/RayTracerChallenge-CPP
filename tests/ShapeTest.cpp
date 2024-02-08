@@ -227,3 +227,62 @@ TEST_CASE("A ray intersecting a plane from below", "[Plane]") {
   REQUIRE(xs[0].first == 1);
   REQUIRE(xs[0].second == &p);
 }
+
+TEST_CASE("Reflectivity for the default material", "[Material]") {
+  RT::Material m;
+  REQUIRE(m.reflective == 0.0);
+}
+
+TEST_CASE("Precomputing the reflection vector", "[Intersection]") {
+  RT::Plane p;
+  auto r =
+      RT::Ray(RT::point(0, 1, -1), RT::vector(0, -sqrt(2) / 2, sqrt(2) / 2));
+  auto i = RT::Intersection(sqrt(2), &p);
+  auto comps = RT::Computations(i, r);
+  REQUIRE(comps.reflect == RT::vector(0, sqrt(2) / 2, sqrt(2) / 2));
+}
+
+TEST_CASE("Transparency and Refractive Index for the default material",
+          "[Material]") {
+
+  auto m = RT::Material();
+  REQUIRE(m.transparency == 0);
+  REQUIRE(m.refractiveIndex == 1);
+}
+
+TEST_CASE("A helper for producing a glassy sphere", "[Sphere]") {
+  auto s = RT::glassSphere();
+  REQUIRE(s.transformation == RT::identityMatrix<4>());
+  REQUIRE(s.material.transparency == 1.0);
+  REQUIRE(s.material.refractiveIndex == 1.5);
+}
+
+TEST_CASE("Finding n1 and n2 at various intersections", "[Intersection]") {
+  auto a = RT::glassSphere(RT::scaling(2, 2, 2));
+  auto b = RT::glassSphere(RT::translation(0, 0, -0.25), 1, 2.0);
+  auto c = RT::glassSphere(RT::translation(0, 0, 0.25), 1, 2.5);
+  auto r = RT::Ray(RT::point(0, 0, -4), RT::vector(0, 0, 1));
+  auto xs =
+      RT::intersections(RT::Intersection(2, &a), RT::Intersection(2.75, &b),
+                        RT::Intersection(3.25, &c), RT::Intersection(4.75, &b),
+                        RT::Intersection(5.25, &c), RT::Intersection(6, &a));
+
+  auto n1s = std::vector<double>{1.0, 1.5, 2.0, 2.5, 2.5, 1.5};
+  auto n2s = std::vector<double>{1.5, 2.0, 2.5, 2.5, 1.5, 1.0};
+
+  for (auto i = 0; i < xs.size(); i++) {
+    auto comps = RT::Computations(xs[i], r, xs);
+    REQUIRE(comps.n1 == n1s[i]);
+    REQUIRE(comps.n2 == n2s[i]);
+  }
+}
+
+TEST_CASE("The under point is offset below the surface", "[Intersection]") {
+  auto r = RT::Ray(RT::point(0, 0, -5), RT::vector(0, 0, 1));
+  auto s = RT::glassSphere(RT::translation(0, 0, 1));
+  auto i = RT::Intersection(5, &s);
+  auto xs = RT::intersections(i);
+  auto comps = RT::Computations(i, r, xs);
+  REQUIRE(comps.underPoint.z > EPSILON / 2);
+  REQUIRE(comps.point.z < comps.underPoint.z);
+}

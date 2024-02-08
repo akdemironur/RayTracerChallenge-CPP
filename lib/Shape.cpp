@@ -1,17 +1,20 @@
 #include "Shape.hpp"
 #include "Matrix.hpp"
 #include "Pattern.hpp"
+#include <vector>
 
 namespace RT {
 
 Material::Material()
     : color(RT::color(1, 1, 1)), ambient(0.1), diffuse(0.9), specular(0.9),
-      shininess(200) {}
+      shininess(200), reflective(0), transparency(0), refractiveIndex(1) {}
 
 Material::Material(Color color, double ambient, double diffuse, double specular,
-                   double shininess)
+                   double shininess, double reflectivity, double transparency,
+                   double refractiveIndex)
     : color(color), ambient(ambient), diffuse(diffuse), specular(specular),
-      shininess(shininess) {}
+      shininess(shininess), reflective(reflectivity),
+      transparency(transparency), refractiveIndex(refractiveIndex) {}
 
 Material::Material(const Material &m)
     : color(m.color), ambient(m.ambient), diffuse(m.diffuse),
@@ -123,7 +126,41 @@ std::optional<Intersection> hit(const std::vector<Intersection> &xs) {
   return result;
 }
 
-Computations::Computations(const Intersection &i, const Ray &r) {
+Computations::Computations(const Intersection &i, const Ray &r,
+                           const std::vector<Intersection> &xsp) {
+  const std::vector<Intersection> &xs = [&]() {
+    if (xsp.empty()) {
+      return std::vector<Intersection>{i};
+    }
+    return xsp;
+  }();
+  std::vector<const Shape *> container;
+  auto &h = i;
+  for (auto &i : xs) {
+    if (i == h) {
+      if (container.empty()) {
+        n1 = 1;
+      } else {
+        n1 = container.back()->material.refractiveIndex;
+      }
+    }
+    if (std::find(container.begin(), container.end(), i.second) !=
+        container.end()) {
+      container.erase(std::remove(container.begin(), container.end(), i.second),
+                      container.end());
+    } else {
+      container.push_back(i.second);
+    }
+
+    if (i == h) {
+      if (container.empty()) {
+        n2 = 1;
+      } else {
+        n2 = container.back()->material.refractiveIndex;
+      }
+      break;
+    }
+  }
   t = i.first;
   object = i.second;
   point = r.position(t);
@@ -136,6 +173,8 @@ Computations::Computations(const Intersection &i, const Ray &r) {
     inside = false;
   }
   overPoint = point + normal * EPSILON;
+  underPoint = point - normal * EPSILON;
+  reflect = r.direction.reflect(normal);
 }
 
 Material &Material::operator=(const Material &m) {
@@ -160,6 +199,15 @@ Material &Material::operator=(Material &&m) noexcept {
     pattern = std::move(m.pattern);
   }
   return *this;
+}
+
+Sphere glassSphere(Transformation transform, double transparency,
+                   double refractiveIndex) {
+  auto s = Sphere();
+  s.transformation = transform;
+  s.material.transparency = transparency;
+  s.material.refractiveIndex = refractiveIndex;
+  return s;
 }
 
 } // namespace RT
