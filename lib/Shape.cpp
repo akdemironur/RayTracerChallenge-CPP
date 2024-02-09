@@ -45,15 +45,25 @@ Color Shape::patternAt(const Point &point) const {
   return material.pattern->patternAt(patternPoint);
 }
 
-Vector Sphere::normalAt(const Point &p) const {
-  auto objectPoint = transformation.inverse() * p;
-  auto objectNormal = objectPoint - point(0, 0, 0);
+Vector Shape::normalAt(const Point &point) const {
+  auto objectPoint = transformation.inverse() * point;
+  auto objectNormal = localNormalAt(objectPoint);
   auto worldNormal = transformation.inverse().transpose() * objectNormal;
   worldNormal.w = 0;
   return worldNormal.norm();
 }
 
-Vector Plane::normalAt(const Point &p) const { return vector(0, 1, 0); }
+std::vector<std::pair<double, const Shape *>>
+Shape::intersect(const Ray &ray) const {
+  auto localRay = ray.transform(transformation.inverse());
+  return localIntersect(localRay);
+}
+
+Vector Sphere::localNormalAt(const Point &p) const {
+  return (p - point(0, 0, 0));
+}
+
+Vector Plane::localNormalAt(const Point &p) const { return vector(0, 1, 0); }
 
 Tuple Shape::lighting(const Light &light, const Point &point, const Vector &eye,
                       const Vector &normal, bool inShadow) const {
@@ -87,9 +97,8 @@ Tuple Shape::lighting(const Light &light, const Point &point, const Vector &eye,
   return ambient + diffuse + specular;
 }
 
-std::vector<Intersection> Sphere::intersect(const Ray &r) const {
+std::vector<Intersection> Sphere::localIntersect(const Ray &ray) const {
   std::vector<Intersection> xs;
-  auto ray = r.transform(transformation.inverse());
   auto sphere_to_ray = ray.origin - point(0, 0, 0);
   auto a = dot(ray.direction, ray.direction);
   auto b = 2 * dot(ray.direction, sphere_to_ray);
@@ -101,18 +110,12 @@ std::vector<Intersection> Sphere::intersect(const Ray &r) const {
   }
   return xs;
 }
-std::vector<Intersection> Plane::intersect(const Ray &r) const {
-  std::vector<Intersection> xs;
-  auto ray = r.transform(transformation.inverse());
-
+std::vector<Intersection> Plane::localIntersect(const Ray &ray) const {
   if (std::abs(ray.direction.y) < EPSILON) {
-    return xs;
+    return {};
   }
-
   auto t = -ray.origin.y / ray.direction.y;
-  xs.push_back(Intersection(t, this));
-
-  return xs;
+  return {Intersection(t, this)};
 }
 
 std::optional<Intersection> hit(const std::vector<Intersection> &xs) {
@@ -235,6 +238,49 @@ double Computations::schlick() const {
   auto r0 = std::pow((n1 - n2) / (n1 + n2), 2);
 
   return r0 + (1 - r0) * std::pow(1 - cos, 5);
+}
+
+Vector Cube::localNormalAt(const Point &p) const {
+  auto maxc = std::max({std::abs(p.x), std::abs(p.y), std::abs(p.z)});
+
+  if (isEqual(maxc, std::abs(p.x))) {
+    return vector(p.x, 0, 0);
+  }
+
+  if (isEqual(maxc, std::abs(p.y))) {
+    return vector(0, p.y, 0);
+  }
+  return vector(0, 0, p.z);
+}
+
+std::pair<double, double> checkAxis(double origin, double direction) {
+  auto tmin_numerator = -1 - origin;
+  auto tmax_numerator = 1 - origin;
+  double tmin, tmax;
+  if (std::abs(direction) >= EPSILON) {
+    tmin = tmin_numerator / direction;
+    tmax = tmax_numerator / direction;
+  } else {
+    tmin = tmin_numerator * INFINITY;
+    tmax = tmax_numerator * INFINITY;
+  }
+  if (tmin > tmax) {
+    std::swap(tmin, tmax);
+  }
+  return {tmin, tmax};
+}
+
+std::vector<std::pair<double, const Shape *>>
+Cube::localIntersect(const Ray &ray) const {
+  auto [xtmin, xtmax] = checkAxis(ray.origin.x, ray.direction.x);
+  auto [ytmin, ytmax] = checkAxis(ray.origin.y, ray.direction.y);
+  auto [ztmin, ztmax] = checkAxis(ray.origin.z, ray.direction.z);
+  auto tmin = std::max({xtmin, ytmin, ztmin});
+  auto tmax = std::min({xtmax, ytmax, ztmax});
+  if (tmin > tmax) {
+    return {};
+  }
+  return {{tmin, this}, {tmax, this}};
 }
 
 } // namespace RT

@@ -43,9 +43,11 @@ public:
   Tuple lighting(const Light &light, const Point &point, const Vector &eye,
                  const Vector &normal, bool inShadow = false) const;
   Color patternAt(const Point &point) const;
-  virtual Vector normalAt(const Point &point) const = 0;
+  virtual Vector localNormalAt(const Point &point) const = 0;
+  Vector normalAt(const Point &point) const;
   virtual std::vector<std::pair<double, const Shape *>>
-  intersect(const Ray &ray) const = 0;
+  localIntersect(const Ray &ray) const = 0;
+  std::vector<std::pair<double, const Shape *>> intersect(const Ray &ray) const;
   virtual ~Shape() = default;
 };
 
@@ -54,9 +56,9 @@ public:
   Sphere() : Shape(){};
   Sphere(const Transformation &transformation, const Material &material)
       : Shape(transformation, material){};
-  Vector normalAt(const Point &point) const override;
+  Vector localNormalAt(const Point &point) const override;
   std::vector<std::pair<double, const Shape *>>
-  intersect(const Ray &ray) const override;
+  localIntersect(const Ray &ray) const override;
   ~Sphere() = default;
 };
 
@@ -65,10 +67,21 @@ public:
   Plane() : Shape(){};
   Plane(const Transformation &transformation, const Material &material)
       : Shape(transformation, material){};
-  Vector normalAt(const Point &point) const override;
+  Vector localNormalAt(const Point &point) const override;
   std::vector<std::pair<double, const Shape *>>
-  intersect(const Ray &ray) const override;
+  localIntersect(const Ray &ray) const override;
   ~Plane() = default;
+};
+
+class Cube : public Shape {
+public:
+  Cube() : Shape(){};
+  Cube(const Transformation &transformation, const Material &material)
+      : Shape(transformation, material){};
+  Vector localNormalAt(const Point &point) const override;
+  std::vector<std::pair<double, const Shape *>>
+  localIntersect(const Ray &ray) const override;
+  ~Cube() = default;
 };
 
 using Intersection = std::pair<double, const Shape *>;

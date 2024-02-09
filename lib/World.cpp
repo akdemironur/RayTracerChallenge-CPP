@@ -2,6 +2,7 @@
 #include "Matrix.hpp"
 #include "Shape.hpp"
 #include "Util.hpp"
+#include <memory>
 
 namespace RT {
 
@@ -34,7 +35,7 @@ int World::count() const { return objects.size(); }
 
 std::vector<Intersection> World::intersect(const Ray &ray) const {
   std::vector<Intersection> result;
-  for (const auto &object : objects) {
+  for (const std::unique_ptr<Shape> &object : objects) {
     auto xs = object->intersect(ray);
     for (auto &x : xs) {
       result.push_back(x);

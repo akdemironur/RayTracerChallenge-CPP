@@ -318,3 +318,109 @@ TEST_CASE("The Schlick approximation with small angle and n2 > n1",
   auto reflectance = comps.schlick();
   REQUIRE(RT::isEqual(reflectance, 0.48873));
 }
+TEST_CASE("A ray intersects a cube") {
+  RT::Cube c;
+  auto r = RT::Ray(RT::point(5, 0.5, 0), RT::vector(-1, 0, 0));
+  auto xs = c.intersect(r);
+  REQUIRE(xs.size() == 2);
+  REQUIRE(xs[0].first == 4);
+  REQUIRE(xs[1].first == 6);
+
+  r = RT::Ray(RT::point(-5, 0.5, 0), RT::vector(1, 0, 0));
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 2);
+  REQUIRE(xs[0].first == 4);
+  REQUIRE(xs[1].first == 6);
+
+  r = RT::Ray(RT::point(0.5, 5, 0), RT::vector(0, -1, 0));
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 2);
+  REQUIRE(xs[0].first == 4);
+  REQUIRE(xs[1].first == 6);
+
+  r = RT::Ray(RT::point(0.5, -5, 0), RT::vector(0, 1, 0));
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 2);
+  REQUIRE(xs[0].first == 4);
+  REQUIRE(xs[1].first == 6);
+
+  r = RT::Ray(RT::point(0.5, 0, 5), RT::vector(0, 0, -1));
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 2);
+  REQUIRE(xs[0].first == 4);
+  REQUIRE(xs[1].first == 6);
+
+  r = RT::Ray(RT::point(0.5, 0, -5), RT::vector(0, 0, 1));
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 2);
+  REQUIRE(xs[0].first == 4);
+  REQUIRE(xs[1].first == 6);
+
+  r = RT::Ray(RT::point(0, 0.5, 0), RT::vector(0, 0, 1));
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 2);
+  REQUIRE(xs[0].first == -1);
+  REQUIRE(xs[1].first == 1);
+}
+
+TEST_CASE("A ray misses a cube") {
+  RT::Cube c;
+  auto r = RT::Ray(RT::point(-2, 0, 0), RT::vector(0.2673, 0.5345, 0.8018));
+  auto xs = c.intersect(r);
+  REQUIRE(xs.size() == 0);
+
+  r = RT::Ray(RT::point(0, -2, 0), RT::vector(0.8018, 0.2673, 0.5345));
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 0);
+
+  r = RT::Ray(RT::point(0, 0, -2), RT::vector(0.5345, 0.8018, 0.2673));
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 0);
+
+  r = RT::Ray(RT::point(2, 0, 2), RT::vector(0, 0, -1));
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 0);
+
+  r = RT::Ray(RT::point(0, 2, 2), RT::vector(0, -1, 0));
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 0);
+
+  r = RT::Ray(RT::point(2, 2, 0), RT::vector(-1, 0, 0));
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 0);
+}
+
+TEST_CASE("The normal on the surface of a cube") {
+  auto c = RT::Cube();
+  auto p = RT::point(1, 0.5, -0.8);
+  auto n = c.normalAt(p);
+  REQUIRE(n == RT::vector(1, 0, 0));
+
+  p = RT::point(-1, -0.2, 0.9);
+  n = c.normalAt(p);
+  REQUIRE(n == RT::vector(-1, 0, 0));
+
+  p = RT::point(-0.4, 1, -0.1);
+  n = c.normalAt(p);
+  REQUIRE(n == RT::vector(0, 1, 0));
+
+  p = RT::point(0.3, -1, -0.7);
+  n = c.normalAt(p);
+  REQUIRE(n == RT::vector(0, -1, 0));
+
+  p = RT::point(-0.6, 0.3, 1);
+  n = c.normalAt(p);
+  REQUIRE(n == RT::vector(0, 0, 1));
+
+  p = RT::point(0.4, 0.4, -1);
+  n = c.normalAt(p);
+  REQUIRE(n == RT::vector(0, 0, -1));
+
+  p = RT::point(1, 1, 1);
+  n = c.normalAt(p);
+  REQUIRE(n == RT::vector(1, 0, 0));
+
+  p = RT::point(-1, -1, -1);
+  n = c.normalAt(p);
+  REQUIRE(n == RT::vector(-1, 0, 0));
+}
