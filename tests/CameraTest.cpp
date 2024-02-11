@@ -15,12 +15,12 @@ TEST_CASE("Constructing a camera", "[Camera]") {
 
 TEST_CASE("The pixel size for a horizontal canvas", "[Camera]") {
   RT::Camera c(200, 125, M_PI / 2);
-  REQUIRE(RT::isEqual(c.pixelSize, 0.01));
+  REQUIRE(RT::approxEqual(c.pixelSize, 0.01));
 }
 
 TEST_CASE("The pixel size for a vertical canvas", "[Camera]") {
   RT::Camera c(125, 200, M_PI / 2);
-  REQUIRE(RT::isEqual(c.pixelSize, 0.01));
+  REQUIRE(RT::approxEqual(c.pixelSize, 0.01));
 }
 
 TEST_CASE("Constructing a ray through the center of the canvas", "[Camera]") {

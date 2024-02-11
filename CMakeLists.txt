@@ -15,7 +15,8 @@ FetchContent_MakeAvailable(Catch2)
 
 include_directories (${CMAKE_SOURCE_DIR}/include)
 
-set (CMAKE_CXX_FLAGS "-fexceptions -Wall -O2 -Wpedantic")
+add_compile_options(-fexceptions -Wall -O2 -Wpedantic -g)
+
 add_library             ( Tuple lib/Tuple.cpp)
 target_link_libraries   ( Tuple )
 

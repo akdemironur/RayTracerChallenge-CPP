@@ -12,11 +12,12 @@ private:
 public:
   Tuple();
   Tuple(const Tuple &t);
+  Tuple(Tuple &&t) noexcept;
   Tuple(double x, double y, double z, double w);
   double &x, &y, &z, &w;
   double &red, &green, &blue;
-  bool isPoint() const;
-  bool isVector() const;
+  [[nodiscard]] bool isPoint() const;
+  [[nodiscard]] bool isVector() const;
   Tuple operator+(const Tuple &t) const;
   Tuple operator-(const Tuple &t) const;
   Tuple operator-() const;
@@ -26,12 +27,14 @@ public:
   bool operator!=(const Tuple &t) const;
   friend std::ostream &operator<<(std::ostream &os, const Tuple &t);
   Tuple &operator=(const Tuple &t);
+  Tuple &operator=(Tuple &&t) noexcept;
   const double &operator()(int i) const;
   double &operator()(int i);
-  double magnitude() const;
-  Tuple reflect(const Tuple &normal) const;
-  Tuple norm() const;
+  [[nodiscard]] double magnitude() const;
+  [[nodiscard]] Tuple reflect(const Tuple &normal) const;
+  [[nodiscard]] Tuple norm() const;
   Tuple &normalize();
+  ~Tuple() = default;
 };
 Tuple point(double x, double y, double z);
 Tuple vector(double x, double y, double z);

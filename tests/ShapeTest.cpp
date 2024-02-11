@@ -1,6 +1,7 @@
 #include "Shape.hpp"
 #include "Matrix.hpp"
 #include "Ray.hpp"
+#include "Util.hpp"
 #include <catch2/catch_test_macros.hpp>
 
 TEST_CASE("The normal on a sphere at a point on the x axis", "[Sphere]") {
@@ -306,7 +307,7 @@ TEST_CASE("The Schlick approximation with a perpendicular viewing angle",
       RT::intersections(RT::Intersection(-1, &s), RT::Intersection(1, &s));
   auto comps = RT::Computations(xs[1], r, xs);
   auto reflectance = comps.schlick();
-  REQUIRE(RT::isEqual(reflectance, 0.04));
+  REQUIRE(RT::approxEqual(reflectance, 0.04));
 }
 
 TEST_CASE("The Schlick approximation with small angle and n2 > n1",
@@ -316,7 +317,7 @@ TEST_CASE("The Schlick approximation with small angle and n2 > n1",
   auto xs = RT::intersections(RT::Intersection(1.8589, &s));
   auto comps = RT::Computations(xs[0], r, xs);
   auto reflectance = comps.schlick();
-  REQUIRE(RT::isEqual(reflectance, 0.48873));
+  REQUIRE(RT::approxEqual(reflectance, 0.48873));
 }
 TEST_CASE("A ray intersects a cube") {
   RT::Cube c;
@@ -423,4 +424,120 @@ TEST_CASE("The normal on the surface of a cube") {
   p = RT::point(-1, -1, -1);
   n = c.normalAt(p);
   REQUIRE(n == RT::vector(-1, 0, 0));
+}
+
+TEST_CASE("A ray misses a cylinder", "[Cylinder]") {
+  RT::Ray r(RT::point(1, 0, 0), RT::vector(0, 1, 0));
+  RT::Cylinder c;
+  auto xs = c.intersect(r);
+  REQUIRE(xs.size() == 0);
+
+  r = RT::Ray(RT::point(0, 0, 0), RT::vector(0, 1, 0));
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 0);
+
+  r = RT::Ray(RT::point(0, 0, -5), RT::vector(1, 1, 1));
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 0);
+}
+
+TEST_CASE("A ray strikes a cylinder", "[Cylinder]") {
+  RT::Ray r(RT::point(1, 0, -5), RT::vector(0, 0, 1));
+  RT::Cylinder c;
+  auto xs = c.intersect(r);
+  REQUIRE(xs.size() == 2);
+  REQUIRE(RT::approxEqual(xs[0].first, 5.0));
+  REQUIRE(RT::approxEqual(xs[1].first, 5.0));
+
+  r = RT::Ray(RT::point(0, 0, -5), RT::vector(0, 0, 1));
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 2);
+  REQUIRE(RT::approxEqual(xs[0].first, 4.0));
+  REQUIRE(RT::approxEqual(xs[1].first, 6.0));
+
+  r = RT::Ray(RT::point(0.5, 0, -5), RT::vector(0.1, 1, 1).norm());
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 2);
+  REQUIRE(RT::approxEqual(xs[0].first, 6.80798));
+  REQUIRE(RT::approxEqual(xs[1].first, 7.08872));
+}
+
+TEST_CASE("Normal vector on a cylinder", "[Cylinder]") {
+  RT::Cylinder c;
+  auto n = c.normalAt(RT::point(1, 0, 0));
+  REQUIRE(n == RT::vector(1, 0, 0));
+
+  n = c.normalAt(RT::point(0, 5, -1));
+  REQUIRE(n == RT::vector(0, 0, -1));
+
+  n = c.normalAt(RT::point(0, -2, 1));
+  REQUIRE(n == RT::vector(0, 0, 1));
+
+  n = c.normalAt(RT::point(-1, 1, 0));
+  REQUIRE(n == RT::vector(-1, 0, 0));
+}
+
+TEST_CASE("The default minimum and maximum for a cylinder", "[Cylinder]") {
+  RT::Cylinder c;
+  REQUIRE(c.minimum == -INFINITY);
+  REQUIRE(c.maximum == INFINITY);
+}
+
+TEST_CASE("Intersecting a constrained cylinder", "[Cylinder]") {
+  RT::Cylinder c;
+  c.minimum = 1;
+  c.maximum = 2;
+  RT::Ray r(RT::point(0, 1.5, -5), RT::vector(0.1, 1, 0).norm());
+  auto xs = c.intersect(r);
+  REQUIRE(xs.size() == 0);
+
+  r = RT::Ray(RT::point(0, 3, -5), RT::vector(0, 0, 1));
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 0);
+
+  r = RT::Ray(RT::point(0, 0, -5), RT::vector(0, 0, 1));
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 0);
+
+  r = RT::Ray(RT::point(0, 2, -5), RT::vector(0, 0, 1));
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 0);
+
+  r = RT::Ray(RT::point(0, 1, -5), RT::vector(0, 0, 1));
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 0);
+
+  r = RT::Ray(RT::point(0, 1.5, -2), RT::vector(0, 0, 1));
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 2);
+}
+
+TEST_CASE("The default closed value for a cylinder", "[Cylinder]") {
+  RT::Cylinder c;
+  REQUIRE(c.closed == false);
+}
+TEST_CASE("Intersecting the caps of a closed cylinder", "[Cylinder]") {
+  RT::Cylinder c;
+  c.minimum = 1;
+  c.maximum = 2;
+  c.closed = true;
+  RT::Ray r(RT::point(0, 3, 0), RT::vector(0, -1, 0));
+  auto xs = c.localIntersect(r);
+  // REQUIRE(xs.size() == 2);
+
+  r = RT::Ray(RT::point(0, 3, -2), RT::vector(0, -1, 2).norm());
+  xs = c.localIntersect(r);
+  REQUIRE(xs.size() == 2);
+
+  r = RT::Ray(RT::point(0, 4, -2), RT::vector(0, -1, 1).norm());
+  xs = c.localIntersect(r);
+  REQUIRE(xs.size() == 2);
+
+  r = RT::Ray(RT::point(0, 0, -2), RT::vector(0, 1, 2).norm());
+  xs = c.localIntersect(r);
+  REQUIRE(xs.size() == 2);
+
+  r = RT::Ray(RT::point(0, -1, -2), RT::vector(0, 1, 1).norm());
+  xs = c.localIntersect(r);
+  REQUIRE(xs.size() == 2);
 }

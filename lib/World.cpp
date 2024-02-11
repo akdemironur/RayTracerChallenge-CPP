@@ -6,8 +6,7 @@
 
 namespace RT {
 
-World::World(bool defaultWorld)
-    : light{point(-10, 10, -10), color(1, 1, 1)}, objects{} {
+World::World(bool defaultWorld) : light{point(-10, 10, -10), color(1, 1, 1)} {
 
   if (defaultWorld) {
     objects.push_back(std::make_unique<Sphere>(Sphere()));
@@ -31,7 +30,7 @@ void World::add(std::unique_ptr<Shape> object) {
   objects.push_back(std::move(object));
 }
 
-int World::count() const { return objects.size(); }
+size_t World::count() const { return objects.size(); }
 
 std::vector<Intersection> World::intersect(const Ray &ray) const {
   std::vector<Intersection> result;
@@ -51,7 +50,7 @@ std::vector<Intersection> World::intersect(const Ray &ray) const {
 }
 
 Color World::reflectedColor(const Computations &comps, int remaining) const {
-  if (isEqual(comps.object->material.reflective, 0.0) || remaining <= 0) {
+  if (approxEqual(comps.object->material.reflective, 0.0) || remaining <= 0) {
     return color(0, 0, 0);
   }
   auto reflectRay = Ray(comps.overPoint, comps.reflect);
@@ -60,7 +59,7 @@ Color World::reflectedColor(const Computations &comps, int remaining) const {
 }
 
 Color World::refractedColor(const Computations &comps, int remaining) const {
-  if (isEqual(comps.object->material.transparency, 0.0) || remaining <= 0) {
+  if (approxEqual(comps.object->material.transparency, 0.0) || remaining <= 0) {
     return color(0, 0, 0);
   }
   auto nRatio = comps.n1 / comps.n2;
@@ -108,9 +107,6 @@ bool World::isShadowed(const Point &point) const {
   auto r = Ray(point, direction);
   auto xs = intersect(r);
   auto h = hit(xs);
-  if (h.has_value() && h.value().first < distance) {
-    return true;
-  }
-  return false;
+  return h.has_value() && h.value().first < distance;
 }
 } // namespace RT

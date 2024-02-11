@@ -3,9 +3,9 @@
 
 namespace RT {
 
-StripePattern::StripePattern()
-    : Pattern(), a(RT::color(1, 1, 1)), b(RT::color(0, 0, 0)){};
-StripePattern::StripePattern(const Color &a, const Color &b) : a(a), b(b){};
+StripePattern::StripePattern() : a(RT::color(1, 1, 1)), b(RT::color(0, 0, 0)){};
+StripePattern::StripePattern(Color a, Color b)
+    : a(std::move(a)), b(std::move(b)){};
 std::unique_ptr<Pattern> StripePattern::clone() const {
   return std::make_unique<StripePattern>(*this);
 };
@@ -17,7 +17,8 @@ Color StripePattern::patternAt(const Point &p) const {
   return b;
 }
 
-TestPattern::TestPattern() : Pattern(){};
+TestPattern::TestPattern() = default;
+;
 
 Color TestPattern::patternAt(const Point &p) const {
   return RT::color(p.x, p.y, p.z);
@@ -28,10 +29,10 @@ std::unique_ptr<Pattern> TestPattern::clone() const {
 }
 
 GradientPattern::GradientPattern()
-    : Pattern(), a(RT::color(1, 1, 1)), b(RT::color(0, 0, 0)){};
+    : a(RT::color(1, 1, 1)), b(RT::color(0, 0, 0)){};
 
-GradientPattern::GradientPattern(const Color &a, const Color &b)
-    : Pattern(), a(a), b(b){};
+GradientPattern::GradientPattern(Color a, Color b)
+    : a(std::move(a)), b(std::move(b)){};
 
 Color GradientPattern::patternAt(const Point &p) const {
   auto distance = b - a;
@@ -43,11 +44,9 @@ std::unique_ptr<Pattern> GradientPattern::clone() const {
   return std::make_unique<GradientPattern>(*this);
 }
 
-RingPattern::RingPattern()
-    : Pattern(), a(RT::color(1, 1, 1)), b(RT::color(0, 0, 0)){};
+RingPattern::RingPattern() : a(RT::color(1, 1, 1)), b(RT::color(0, 0, 0)){};
 
-RingPattern::RingPattern(const Color &a, const Color &b)
-    : Pattern(), a(a), b(b){};
+RingPattern::RingPattern(Color a, Color b) : a(std::move(a)), b(std::move(b)){};
 
 Color RingPattern::patternAt(const Point &p) const {
   if (int(std::floor(std::sqrt(p.x * p.x + p.z * p.z))) % 2 == 0) {
@@ -61,10 +60,10 @@ std::unique_ptr<Pattern> RingPattern::clone() const {
 }
 
 CheckersPattern::CheckersPattern()
-    : Pattern(), a(RT::color(1, 1, 1)), b(RT::color(0, 0, 0)){};
+    : a(RT::color(1, 1, 1)), b(RT::color(0, 0, 0)){};
 
-CheckersPattern::CheckersPattern(const Color &a, const Color &b)
-    : Pattern(), a(a), b(b){};
+CheckersPattern::CheckersPattern(Color a, Color b)
+    : a(std::move(a)), b(std::move(b)){};
 
 Color CheckersPattern::patternAt(const Point &p) const {
   if ((int(std::floor(p.x)) + int(std::floor(p.y)) + int(std::floor(p.z))) %

@@ -4,53 +4,53 @@
 #include <cassert>
 namespace RT {
 
-template <int m> class Matrix {
+template <size_t m> class Matrix {
 private:
   std::array<double, m * m> data;
 
 public:
   Matrix();
-  Matrix(const std::array<double, m * m> &v);
+  explicit Matrix(const std::array<double, m * m> &values);
   const double &operator()(int i, int j) const;
   double &operator()(int i, int j);
   bool operator==(const Matrix<m> &other) const;
-  Matrix<m> transpose() const;
-  Matrix<m - 1> submatrix(int row, int col) const;
-  double minor(int row, int col) const;
-  double cofactor(int row, int col) const;
-  double determinant() const;
-  bool isInvertible() const;
-  Matrix<m> inverse() const;
+  [[nodiscard]] Matrix<m> transpose() const;
+  [[nodiscard]] Matrix<m - 1> submatrix(int row, int col) const;
+  [[nodiscard]] double minor(int row, int col) const;
+  [[nodiscard]] double cofactor(int row, int col) const;
+  [[nodiscard]] double determinant() const;
+  [[nodiscard]] bool isInvertible() const;
+  [[nodiscard]] Matrix<m> inverse() const;
 };
 
 using Transformation = Matrix<4>;
 
-template <int m> Matrix<m>::Matrix() { data = std::array<double, m * m>(0); }
+template <size_t m> Matrix<m>::Matrix() : data(std::array<double, m * m>(0)) {}
 
-template <int m> Matrix<m>::Matrix(const std::array<double, m * m> &v) {
-  data = v;
-}
+template <size_t m>
+Matrix<m>::Matrix(const std::array<double, m * m> &values) : data(values) {}
 
-template <int m> double &Matrix<m>::operator()(int i, int j) {
+template <size_t m> double &Matrix<m>::operator()(int i, int j) {
   assert(i >= 0 && i < m && j >= 0 && j < m && "out of bounds");
-  return data[i * m + j];
+  return data.at(i * m + j);
 }
 
-template <int m> const double &Matrix<m>::operator()(int i, int j) const {
+template <size_t m> const double &Matrix<m>::operator()(int i, int j) const {
   assert(i >= 0 && i < m && j >= 0 && j < m && "out of bounds");
-  return data[i * m + j];
+  return data.at(i * m + j);
 }
 
-template <int m> bool Matrix<m>::operator==(const Matrix<m> &other) const {
+template <size_t m> bool Matrix<m>::operator==(const Matrix<m> &other) const {
   for (auto i = 0; i < m * m; i++) {
-    if (!isEqual(data[i], other.data[i])) {
+    if (!approxEqual(data[i], other.data[i])) {
       return false;
     }
   }
   return true;
 }
 
-template <int m> Matrix<m> operator+(const Matrix<m> &a, const Matrix<m> &b) {
+template <size_t m>
+Matrix<m> operator+(const Matrix<m> &a, const Matrix<m> &b) {
   std::array<double, m * m> v;
   for (int i = 0; i < m * m; i++) {
     v[i] = a.data[i] + b.data[i];
@@ -58,7 +58,8 @@ template <int m> Matrix<m> operator+(const Matrix<m> &a, const Matrix<m> &b) {
   return Matrix<m>(v);
 }
 
-template <int m> Matrix<m> operator-(const Matrix<m> &a, const Matrix<m> &b) {
+template <size_t m>
+Matrix<m> operator-(const Matrix<m> &a, const Matrix<m> &b) {
   std::array<double, m * m> v;
   for (int i = 0; i < m * m; i++) {
     v[i] = a.data[i] - b.data[i];
@@ -66,36 +67,37 @@ template <int m> Matrix<m> operator-(const Matrix<m> &a, const Matrix<m> &b) {
   return Matrix<m>(v);
 }
 
-template <int m> Matrix<m> operator*(const Matrix<m> &a, const Matrix<m> &b) {
-  std::array<double, m * m> v;
+template <size_t m>
+Matrix<m> operator*(const Matrix<m> &a, const Matrix<m> &b) {
+  std::array<double, m * m> v{};
   for (int i = 0; i < m; i++) {
     for (int j = 0; j < m; j++) {
       double sum = 0;
       for (int k = 0; k < m; k++) {
         sum += a(i, k) * b(k, j);
       }
-      v[i * m + j] = sum;
+      v.at(i * m + j) = sum;
     }
   }
   return Matrix<m>(v);
 }
 
-template <int m> Tuple operator*(const Matrix<m> &a, const Tuple &b) {
+template <size_t m> Tuple operator*(const Matrix<m> &a, const Tuple &b) {
   std::array<double, 4> v{0, 0, 0, 0};
   for (int i = 0; i < m; i++) {
     double sum = 0;
     for (int j = 0; j < m; j++) {
       sum += a(i, j) * b(j);
     }
-    v[i] = sum;
+    v.at(i) = sum;
   }
-  return Tuple(v[0], v[1], v[2], v[3]);
+  return {v[0], v[1], v[2], v[3]};
 }
 
-template <int m> Matrix<m> identityMatrix() {
+template <size_t m> Matrix<m> identityMatrix() {
   std::array<double, m * m> v{0};
   for (int i = 0; i < m; i++) {
-    v[i * m + i] = 1;
+    v.at(i * m + i) = 1;
   }
   return Matrix<m>(v);
 }
@@ -104,7 +106,7 @@ template <> inline double Matrix<2>::determinant() const {
   return data[0] * data[3] - data[1] * data[2];
 }
 
-template <int m> double Matrix<m>::determinant() const {
+template <size_t m> double Matrix<m>::determinant() const {
   double det = 0;
   for (int i = 0; i < m; i++) {
     det += data[i] * cofactor(0, i);
@@ -112,11 +114,11 @@ template <int m> double Matrix<m>::determinant() const {
   return det;
 }
 
-template <int m> bool Matrix<m>::isInvertible() const {
+template <size_t m> bool Matrix<m>::isInvertible() const {
   return determinant() != 0;
 }
 
-template <int m> Matrix<m> Matrix<m>::inverse() const {
+template <size_t m> Matrix<m> Matrix<m>::inverse() const {
   double det = determinant();
   std::array<double, m * m> v;
   for (int i = 0; i < m; i++) {
@@ -127,7 +129,7 @@ template <int m> Matrix<m> Matrix<m>::inverse() const {
   return Matrix<m>(v);
 }
 
-template <int m> Matrix<m - 1> Matrix<m>::submatrix(int row, int col) const {
+template <size_t m> Matrix<m - 1> Matrix<m>::submatrix(int row, int col) const {
   std::array<double, (m - 1) * (m - 1)> v;
   int k = 0;
   for (int i = 0; i < m; i++) {
@@ -144,16 +146,16 @@ template <int m> Matrix<m - 1> Matrix<m>::submatrix(int row, int col) const {
   return Matrix<m - 1>(v);
 }
 
-template <int m> double Matrix<m>::minor(int row, int col) const {
+template <size_t m> double Matrix<m>::minor(int row, int col) const {
   auto sm = submatrix(row, col);
   return sm.determinant();
 }
 
-template <int m> double Matrix<m>::cofactor(int row, int col) const {
+template <size_t m> double Matrix<m>::cofactor(int row, int col) const {
   return minor(row, col) * (1 - 2 * ((row + col) % 2));
 }
 
-template <int m> Matrix<m> Matrix<m>::transpose() const {
+template <size_t m> Matrix<m> Matrix<m>::transpose() const {
   std::array<double, m * m> v;
   for (int i = 0; i < m; i++) {
     for (int j = 0; j < m; j++) {

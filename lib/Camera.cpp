@@ -3,12 +3,12 @@
 #include <iostream>
 namespace RT {
 
-Camera::Camera(double hsize, double vsize, double fieldOfView,
+Camera::Camera(int hsize, int vsize, double fieldOfView,
                Transformation transform)
     : hsize(hsize), vsize(vsize), fieldOfView(fieldOfView),
       transform(transform) {
   auto halfView = std::tan(fieldOfView / 2);
-  auto aspect = hsize / vsize;
+  double aspect = static_cast<double>(hsize) / vsize;
   if (aspect >= 1) {
     halfWidth = halfView;
     halfHeight = halfView / aspect;
@@ -19,15 +19,16 @@ Camera::Camera(double hsize, double vsize, double fieldOfView,
   pixelSize = (halfWidth * 2) / hsize;
 }
 
-Ray Camera::rayForPixel(int px, int py) const {
-  auto xOffset = (px + 0.5) * pixelSize;
-  auto yOffset = (py + 0.5) * pixelSize;
+Ray Camera::rayForPixel(int pixelX, int pixelY) const {
+  const double pixelOffset = 0.5;
+  auto xOffset = (pixelX + pixelOffset) * pixelSize;
+  auto yOffset = (pixelY + pixelOffset) * pixelSize;
   auto worldX = halfWidth - xOffset;
   auto worldY = halfHeight - yOffset;
   auto pixel = transform.inverse() * point(worldX, worldY, -1);
   auto origin = transform.inverse() * point(0, 0, 0);
   auto direction = (pixel - origin).norm();
-  return Ray(origin, direction);
+  return {origin, direction};
 }
 
 Canvas Camera::render(const World &world) const {

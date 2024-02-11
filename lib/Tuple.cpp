@@ -14,38 +14,53 @@ Tuple::Tuple(double x, double y, double z, double w)
     : data{x, y, z, w}, x(data[0]), y(data[1]), z(data[2]), w(data[3]),
       red(data[0]), green(data[1]), blue(data[2]) {}
 
+Tuple &Tuple::operator=(Tuple &&t) noexcept {
+  this->x = t.x;
+  this->y = t.y;
+  this->z = t.z;
+  this->w = t.w;
+  return *this;
+}
+
+Tuple::Tuple(Tuple &&t) noexcept
+    : data{t.x, t.y, t.z, t.w}, x(data[0]), y(data[1]), z(data[2]), w(data[3]),
+      red(data[0]), green(data[1]), blue(data[2]){};
+
 bool Tuple::isPoint() const { return w == 1.0; }
 
 bool Tuple::isVector() const { return w == 0.0; }
 
 Tuple Tuple::operator+(const Tuple &t) const {
-  return Tuple(x + t.x, y + t.y, z + t.z, w + t.w);
+  return {x + t.x, y + t.y, z + t.z, w + t.w};
 }
 
 Tuple Tuple::operator-(const Tuple &t) const {
-  return Tuple(x - t.x, y - t.y, z - t.z, w - t.w);
+  return {x - t.x, y - t.y, z - t.z, w - t.w};
 }
 
-Tuple Tuple::operator-() const { return Tuple(-x, -y, -z, -w); }
+Tuple Tuple::operator-() const { return {-x, -y, -z, -w}; }
 
 Tuple Tuple::operator*(const double &scalar) const {
-  return Tuple(x * scalar, y * scalar, z * scalar, w * scalar);
+  return {x * scalar, y * scalar, z * scalar, w * scalar};
 }
 
 Tuple operator*(const double &scalar, const Tuple &t) { return t * scalar; }
 
 Tuple Tuple::operator/(const double &scalar) const {
-  return Tuple(x / scalar, y / scalar, z / scalar, w / scalar);
+  return {x / scalar, y / scalar, z / scalar, w / scalar};
 }
 
 bool Tuple::operator==(const Tuple &t) const {
-  return isEqual(x, t.x) && isEqual(y, t.y) && isEqual(z, t.z) &&
-         isEqual(w, t.w);
+  return approxEqual(x, t.x) && approxEqual(y, t.y) && approxEqual(z, t.z) &&
+         approxEqual(w, t.w);
 }
 
 bool Tuple::operator!=(const Tuple &t) const { return !(*this == t); }
 
 Tuple &Tuple::operator=(const Tuple &t) {
+  if (this == &t) {
+    return *this;
+  }
   this->x = t.x;
   this->y = t.y;
   this->z = t.z;
@@ -76,23 +91,24 @@ Tuple cross(const Tuple &a, const Tuple &b) {
                 a.x * b.y - a.y * b.x);
 }
 
-Tuple point(double x, double y, double z) { return Tuple(x, y, z, 1.0); }
+Tuple point(double x, double y, double z) { return {x, y, z, 1.0}; }
 
-Tuple vector(double x, double y, double z) { return Tuple(x, y, z, 0.0); }
+Tuple vector(double x, double y, double z) { return {x, y, z, 0.0}; }
 
-Tuple color(double r, double g, double b) { return Tuple(r, g, b, 0.0); }
+Tuple color(double r, double g, double b) { return {r, g, b, 0.0}; }
 
 Tuple hadamard(const Tuple &a, const Tuple &b) {
-  return Tuple(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w);
+  return {a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w};
 }
+
 double &Tuple::operator()(int i) {
   assert(i >= 0 && i < 4 && "out of bounds");
-  return data[i];
+  return data.at(i);
 }
 
 const double &Tuple::operator()(int i) const {
   assert(i >= 0 && i < 4 && "out of bounds");
-  return data[i];
+  return data.at(i);
 }
 
 Tuple Tuple::reflect(const Tuple &normal) const {

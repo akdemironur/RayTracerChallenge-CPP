@@ -1,43 +1,57 @@
 #include "Shape.hpp"
+
 #include "Matrix.hpp"
 #include "Pattern.hpp"
+#include <cmath>
 #include <istream>
+#include <utility>
 #include <vector>
 
 namespace RT {
 
+const double DEFAULT_AMBIENT = 0.1;
+const double DEFAULT_DIFFUSE = 0.9;
+const double DEFAULT_SPECULAR = 0.9;
+const double DEFAULT_SHININESS = 200;
+
 Material::Material()
-    : color(RT::color(1, 1, 1)), ambient(0.1), diffuse(0.9), specular(0.9),
-      shininess(200), reflective(0), transparency(0), refractiveIndex(1.0) {}
+    : color(RT::color(1, 1, 1)), ambient(DEFAULT_AMBIENT),
+      diffuse(DEFAULT_DIFFUSE), specular(DEFAULT_SPECULAR),
+      shininess(DEFAULT_SHININESS), reflective(0), transparency(0),
+      refractiveIndex(1.0) {}
 
 Material::Material(Color color, double ambient, double diffuse, double specular,
-                   double shininess, double reflectivity, double transparency,
+                   double shininess, double reflective, double transparency,
                    double refractiveIndex)
-    : color(color), ambient(ambient), diffuse(diffuse), specular(specular),
-      shininess(shininess), reflective(reflectivity),
+    : color(std::move(color)), ambient(ambient), diffuse(diffuse),
+      specular(specular), shininess(shininess), reflective(reflective),
       transparency(transparency), refractiveIndex(refractiveIndex) {}
 
-Material::Material(const Material &m)
-    : color(m.color), ambient(m.ambient), diffuse(m.diffuse),
-      specular(m.specular), shininess(m.shininess), reflective(m.reflective),
-      transparency(m.transparency), refractiveIndex(m.refractiveIndex),
-      pattern() {
-  if (m.pattern) {
-    pattern = m.pattern->clone();
+Material::Material(const Material &material)
+    : color(material.color), ambient(material.ambient),
+      diffuse(material.diffuse), specular(material.specular),
+      shininess(material.shininess), reflective(material.reflective),
+      transparency(material.transparency),
+      refractiveIndex(material.refractiveIndex) {
+  if (material.pattern) {
+    pattern = material.pattern->clone();
   }
 }
 
-bool Material::operator==(const Material &m) const {
-  return color == m.color && isEqual(ambient, m.ambient) &&
-         isEqual(diffuse, m.diffuse) && isEqual(specular, m.specular) &&
-         isEqual(shininess, m.shininess) && isEqual(reflective, m.reflective) &&
-         isEqual(transparency, m.transparency) &&
-         isEqual(refractiveIndex, m.refractiveIndex);
+auto Material::operator==(const Material &m) const -> bool {
+  return color == m.color && approxEqual(ambient, m.ambient) &&
+         approxEqual(diffuse, m.diffuse) && approxEqual(specular, m.specular) &&
+         approxEqual(shininess, m.shininess) &&
+         approxEqual(reflective, m.reflective) &&
+         approxEqual(transparency, m.transparency) &&
+         approxEqual(refractiveIndex, m.refractiveIndex);
 }
 
-bool Material::operator!=(const Material &m) const { return !(*this == m); }
+auto Material::operator!=(const Material &m) const -> bool {
+  return !(*this == m);
+}
 
-Color Shape::patternAt(const Point &point) const {
+auto Shape::patternAt(const Point &point) const -> Color {
   assert(material.pattern != nullptr && "Pattern is null");
   auto objectPoint = transformation.inverse() * point;
   auto patternPoint = material.pattern->transformation.inverse() * objectPoint;
@@ -45,7 +59,7 @@ Color Shape::patternAt(const Point &point) const {
   return material.pattern->patternAt(patternPoint);
 }
 
-Vector Shape::normalAt(const Point &point) const {
+auto Shape::normalAt(const Point &point) const -> Vector {
   auto objectPoint = transformation.inverse() * point;
   auto objectNormal = localNormalAt(objectPoint);
   auto worldNormal = transformation.inverse().transpose() * objectNormal;
@@ -63,10 +77,12 @@ Vector Sphere::localNormalAt(const Point &p) const {
   return (p - point(0, 0, 0));
 }
 
-Vector Plane::localNormalAt(const Point &p) const { return vector(0, 1, 0); }
+Vector Plane::localNormalAt(const Point & /*p*/) const {
+  return vector(0, 1, 0);
+}
 
-Tuple Shape::lighting(const Light &light, const Point &point, const Vector &eye,
-                      const Vector &normal, bool inShadow) const {
+auto Shape::lighting(const Light &light, const Point &point, const Vector &eye,
+                     const Vector &normal, bool inShadow) const -> Tuple {
   RT::Color localcolor;
   if (material.pattern) {
     localcolor = patternAt(point);
@@ -105,8 +121,8 @@ std::vector<Intersection> Sphere::localIntersect(const Ray &ray) const {
   auto c = dot(sphere_to_ray, sphere_to_ray) - 1;
   auto discriminant = b * b - 4 * a * c;
   if (discriminant >= 0) {
-    xs.push_back(Intersection((-b - sqrt(discriminant)) / (2 * a), this));
-    xs.push_back(Intersection((-b + sqrt(discriminant)) / (2 * a), this));
+    xs.emplace_back((-b - sqrt(discriminant)) / (2 * a), this);
+    xs.emplace_back((-b + sqrt(discriminant)) / (2 * a), this);
   }
   return xs;
 }
@@ -135,7 +151,8 @@ std::optional<Intersection> hit(const std::vector<Intersection> &xs) {
 }
 
 Computations::Computations(const Intersection &i, const Ray &r,
-                           const std::vector<Intersection> &xsp) {
+                           const std::vector<Intersection> &xsp)
+    : t(i.first), object(i.second) {
   const std::vector<Intersection> &xs = [&]() {
     if (xsp.empty()) {
       return std::vector<Intersection>{i};
@@ -143,8 +160,8 @@ Computations::Computations(const Intersection &i, const Ray &r,
     return xsp;
   }();
   std::vector<const Shape *> container;
-  auto &h = i;
-  for (auto &i : xs) {
+  const auto &h = i;
+  for (const auto &i : xs) {
     if (i == h) {
       if (container.empty()) {
         n1 = 1;
@@ -169,8 +186,7 @@ Computations::Computations(const Intersection &i, const Ray &r,
       break;
     }
   }
-  t = i.first;
-  object = i.second;
+
   point = r.position(t);
   eye = -r.direction;
   normal = object->normalAt(point);
@@ -186,6 +202,9 @@ Computations::Computations(const Intersection &i, const Ray &r,
 }
 
 Material &Material::operator=(const Material &m) {
+  if (this == &m) {
+    return *this;
+  }
   color = m.color;
   ambient = m.ambient;
   diffuse = m.diffuse;
@@ -243,11 +262,11 @@ double Computations::schlick() const {
 Vector Cube::localNormalAt(const Point &p) const {
   auto maxc = std::max({std::abs(p.x), std::abs(p.y), std::abs(p.z)});
 
-  if (isEqual(maxc, std::abs(p.x))) {
+  if (approxEqual(maxc, std::abs(p.x))) {
     return vector(p.x, 0, 0);
   }
 
-  if (isEqual(maxc, std::abs(p.y))) {
+  if (approxEqual(maxc, std::abs(p.y))) {
     return vector(0, p.y, 0);
   }
   return vector(0, 0, p.z);
@@ -256,7 +275,8 @@ Vector Cube::localNormalAt(const Point &p) const {
 std::pair<double, double> checkAxis(double origin, double direction) {
   auto tmin_numerator = -1 - origin;
   auto tmax_numerator = 1 - origin;
-  double tmin, tmax;
+  double tmin = NAN;
+  double tmax = NAN;
   if (std::abs(direction) >= EPSILON) {
     tmin = tmin_numerator / direction;
     tmax = tmax_numerator / direction;
@@ -281,6 +301,77 @@ Cube::localIntersect(const Ray &ray) const {
     return {};
   }
   return {{tmin, this}, {tmax, this}};
+}
+
+Vector Cylinder::localNormalAt(const Point &p) const {
+  auto dist = p.x * p.x + p.z * p.z;
+  if (dist < 1 && p.y >= 1 - EPSILON) {
+    return vector(0, 1, 0);
+  }
+  if (dist < 1 && p.y <= EPSILON) {
+    return vector(0, -1, 0);
+  }
+  return vector(p.x, 0, p.z);
+}
+
+bool Cylinder::checkCap(const Ray &ray, double t) {
+  auto x = ray.origin.x + t * ray.direction.x;
+  auto z = ray.origin.z + t * ray.direction.z;
+  return x * x + z * z <= 1;
+}
+
+std::vector<std::pair<double, const Shape *>>
+Cylinder::intersectCaps(const Ray &ray) const {
+  std::vector<std::pair<double, const Shape *>> xs;
+  if (!closed || approxEqual(ray.direction.y, 0.0)) {
+    return xs;
+  }
+  auto t = (minimum - ray.origin.y) / ray.direction.y;
+  if (checkCap(ray, t)) {
+    xs.emplace_back(t, this);
+  }
+  t = (maximum - ray.origin.y) / ray.direction.y;
+  if (checkCap(ray, t)) {
+    xs.emplace_back(t, this);
+  }
+  return xs;
+}
+
+std::vector<std::pair<double, const Shape *>>
+Cylinder::localIntersect(const Ray &ray) const {
+  auto a =
+      ray.direction.x * ray.direction.x + ray.direction.z * ray.direction.z;
+  if (approxEqual(a, 0.0)) {
+    std::cout << "a == 0" << std::endl;
+    return {};
+  }
+  auto b =
+      2 * ray.origin.x * ray.direction.x + 2 * ray.origin.z * ray.direction.z;
+  auto c = ray.origin.x * ray.origin.x + ray.origin.z * ray.origin.z - 1;
+  auto discriminant = b * b - 4 * a * c;
+  if (discriminant < 0) {
+    std::cout << "discriminant < 0" << std::endl;
+    return {};
+  }
+
+  std::vector<std::pair<double, const Shape *>> xs = intersectCaps(ray);
+
+  auto t1 = (-b - std::sqrt(discriminant)) / (2 * a);
+  auto t2 = (-b + std::sqrt(discriminant)) / (2 * a);
+
+  if (t1 > t2) {
+    std::swap(t1, t2);
+  }
+
+  auto y1 = ray.origin.y + t1 * ray.direction.y;
+  if (minimum < y1 && y1 < maximum) {
+    xs.emplace_back(t1, this);
+  }
+  auto y2 = ray.origin.y + t2 * ray.direction.y;
+  if (minimum < y2 && y2 < maximum) {
+    xs.emplace_back(t2, this);
+  }
+  return xs;
 }
 
 } // namespace RT

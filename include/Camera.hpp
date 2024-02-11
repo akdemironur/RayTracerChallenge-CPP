@@ -1,4 +1,3 @@
-
 #pragma once
 #include "Canvas.hpp"
 #include "Matrix.hpp"
@@ -8,17 +7,17 @@ namespace RT {
 
 class Camera {
 public:
-  Camera(double hsize, double vsize, double fieldOfView,
+  Camera(int hsize, int vsize, double fieldOfView,
          Transformation transform = identityMatrix<4>());
-  double hsize;
-  double vsize;
+  int hsize;
+  int vsize;
   double fieldOfView;
   Transformation transform;
   double pixelSize;
   double halfWidth;
   double halfHeight;
-  Ray rayForPixel(int px, int py) const;
-  Canvas render(const World &world) const;
+  [[nodiscard]] Ray rayForPixel(int pixelX, int pixelY) const;
+  [[nodiscard]] Canvas render(const World &world) const;
 };
 
 } // namespace RT

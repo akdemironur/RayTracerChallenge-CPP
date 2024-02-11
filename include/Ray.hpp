@@ -11,8 +11,8 @@ public:
 
   Ray();
   Ray(Tuple origin, Tuple direction);
-  Point position(double t) const;
-  Ray transform(const Transformation &m) const;
+  [[nodiscard]] Point position(double t) const;
+  [[nodiscard]] Ray transform(const Transformation &m) const;
 };
 
 } // namespace RT
