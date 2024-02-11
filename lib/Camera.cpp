@@ -1,5 +1,6 @@
 #include "Camera.hpp"
 #include "Matrix.hpp"
+#include <format>
 #include <iostream>
 namespace RT {
 
@@ -33,13 +34,27 @@ auto Camera::rayForPixel(int pixelX, int pixelY) const -> Ray {
 
 auto Camera::render(const World &world) const -> Canvas {
   Canvas image(hsize, vsize);
+  const double pixelProgress = 1.0 / (hsize * vsize);
+  double progress = 0;
+  const int barWidth = 10;
+  std ::cout << "Rendering: [";
+  for (int i = 0; i < barWidth; i++) {
+    std::cout << " ";
+  }
+  std::cout << "]\rRendering: [" << std::flush;
   for (auto y = 0; y < vsize; y++) {
     for (auto x = 0; x < hsize; x++) {
       auto ray = rayForPixel(x, y);
       auto color = world.colorAt(ray);
       image.writePixel(x, y, color);
+      progress += pixelProgress;
+      if (progress >= 1.0 / (barWidth + 1)) {
+        progress -= 1.0 / (barWidth + 1);
+        std::cout << "=" << std::flush;
+      }
     }
   }
+  std::cout << "]\n";
   return image;
 }
 
