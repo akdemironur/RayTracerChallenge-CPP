@@ -8,15 +8,17 @@
 
 auto main() -> int {
 
-  std::unique_ptr<RT::Shape> middle = std::make_unique<RT::Sphere>();
+  std::unique_ptr<RT::Cylinder> middle = std::make_unique<RT::Cylinder>();
+  middle->minimum = 0;
+  middle->maximum = 2;
   middle->transformation = RT::translation(-0.5, 1, 0.5);
   middle->material.color = RT::color(1, 1, 1);
   middle->material.ambient = 0;
   middle->material.diffuse = 0;
-  middle->material.specular = 0.9;
-  middle->material.reflective = 1;
+  middle->material.specular = 1;
+  middle->material.reflective = 0;
   middle->material.refractiveIndex = 1.52;
-  middle->material.transparency = 0.5;
+  middle->material.transparency = 1;
   middle->material.shininess = 300;
 
   std::unique_ptr<RT::Shape> bot = std::make_unique<RT::Plane>();
@@ -47,10 +49,10 @@ auto main() -> int {
   std::random_device rngDevice;
   std::default_random_engine rngEngine(rngDevice());
   std::uniform_real_distribution<double> translationZRng(-4, 40);
-  std::normal_distribution<double> translationXRng(-10, 10);
+  std::uniform_real_distribution<double> translationXRng(-10, 10);
   std::uniform_real_distribution<double> colorRng(0, 256);
-  std::normal_distribution<double> ballSizeRng(0.1, 1);
-  for (int i = 0; i < 40; ++i) {
+  std::uniform_real_distribution<double> ballSizeRng(0.1, 1);
+  for (int i = 0; i < 10; ++i) {
     auto s = std::make_unique<RT::Sphere>();
     s->material.color = RT::color(colorRng(rngEngine), colorRng(rngEngine),
                                   colorRng(rngEngine)) /

@@ -132,7 +132,35 @@ public:
 private:
   [[nodiscard]] auto intersectCaps(const Ray &ray) const
       -> std::vector<std::pair<double, const Shape *>>;
-  [[nodiscard]] static auto checkCap(const Ray &ray, double t) -> bool;
+};
+
+class Cone : public Shape {
+public:
+  Cone()
+      : minimum(-std::numeric_limits<double>::infinity()),
+        maximum(std::numeric_limits<double>::infinity()), closed(false){};
+  Cone(const Transformation &transformation, const Material &material,
+       double min = -std::numeric_limits<double>::infinity(),
+       double max = std::numeric_limits<double>::infinity(),
+       bool closed = false)
+      : Shape(transformation, material), minimum(min), maximum(max),
+        closed(closed){};
+  Cone(const Cone &other) = default;
+  auto operator=(const Cone &other) -> Cone & = default;
+  Cone(Cone &&other) noexcept = default;
+  auto operator=(Cone &&other) noexcept -> Cone & = default;
+  double minimum;
+  double maximum;
+  bool closed;
+  [[nodiscard]] auto localNormalAt(const Point &point) const -> Vector override;
+  [[nodiscard]] auto localIntersect(const Ray &ray) const
+      -> std::vector<std::pair<double, const Shape *>> override;
+
+  ~Cone() override = default;
+
+private:
+  [[nodiscard]] auto intersectCaps(const Ray &ray) const
+      -> std::vector<std::pair<double, const Shape *>>;
 };
 
 using Intersection = std::pair<double, const Shape *>;

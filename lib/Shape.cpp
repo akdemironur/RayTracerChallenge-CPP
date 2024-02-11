@@ -2,6 +2,7 @@
 
 #include "Matrix.hpp"
 #include "Pattern.hpp"
+#include "World.hpp"
 #include <cmath>
 #include <istream>
 #include <utility>
@@ -306,19 +307,19 @@ auto Cube::localIntersect(const Ray &ray) const
 
 auto Cylinder::localNormalAt(const Point &p) const -> Vector {
   auto dist = p.x * p.x + p.z * p.z;
-  if (dist < 1 && p.y >= 1 - EPSILON) {
+  if (dist < 1 && p.y >= maximum - EPSILON) {
     return vector(0, 1, 0);
   }
-  if (dist < 1 && p.y <= EPSILON) {
+  if (dist < 1 && p.y <= minimum + EPSILON) {
     return vector(0, -1, 0);
   }
   return vector(p.x, 0, p.z);
 }
 
-auto Cylinder::checkCap(const Ray &ray, double t) -> bool {
+auto checkCap(const Ray &ray, double t, double radius) -> bool {
   auto x = ray.origin.x + t * ray.direction.x;
   auto z = ray.origin.z + t * ray.direction.z;
-  return x * x + z * z <= 1;
+  return x * x + z * z <= radius * radius;
 }
 
 auto Cylinder::intersectCaps(const Ray &ray) const
@@ -328,11 +329,11 @@ auto Cylinder::intersectCaps(const Ray &ray) const
     return xs;
   }
   auto t = (minimum - ray.origin.y) / ray.direction.y;
-  if (checkCap(ray, t)) {
+  if (checkCap(ray, t, 1)) {
     xs.emplace_back(t, this);
   }
   t = (maximum - ray.origin.y) / ray.direction.y;
-  if (checkCap(ray, t)) {
+  if (checkCap(ray, t, 1)) {
     xs.emplace_back(t, this);
   }
   return xs;
@@ -340,22 +341,92 @@ auto Cylinder::intersectCaps(const Ray &ray) const
 
 auto Cylinder::localIntersect(const Ray &ray) const
     -> std::vector<std::pair<double, const Shape *>> {
+  std::vector<std::pair<double, const Shape *>> xs = intersectCaps(ray);
   auto a =
       ray.direction.x * ray.direction.x + ray.direction.z * ray.direction.z;
   if (approxEqual(a, 0.0)) {
-    std::cout << "a == 0" << std::endl;
-    return {};
+    return xs;
   }
   auto b =
       2 * ray.origin.x * ray.direction.x + 2 * ray.origin.z * ray.direction.z;
   auto c = ray.origin.x * ray.origin.x + ray.origin.z * ray.origin.z - 1;
   auto discriminant = b * b - 4 * a * c;
   if (discriminant < 0) {
-    std::cout << "discriminant < 0" << std::endl;
-    return {};
+    return xs;
   }
 
+  auto t1 = (-b - std::sqrt(discriminant)) / (2 * a);
+  auto t2 = (-b + std::sqrt(discriminant)) / (2 * a);
+
+  if (t1 > t2) {
+    std::swap(t1, t2);
+  }
+
+  auto y1 = ray.origin.y + t1 * ray.direction.y;
+  if (minimum < y1 && y1 < maximum) {
+    xs.emplace_back(t1, this);
+  }
+  auto y2 = ray.origin.y + t2 * ray.direction.y;
+  if (minimum < y2 && y2 < maximum) {
+    xs.emplace_back(t2, this);
+  }
+  return xs;
+}
+
+auto Cone::intersectCaps(const Ray &ray) const
+    -> std::vector<std::pair<double, const Shape *>> {
+  std::vector<std::pair<double, const Shape *>> xs;
+  if (!closed || approxEqual(ray.direction.y, 0.0)) {
+    return xs;
+  }
+  auto t = (minimum - ray.origin.y) / ray.direction.y;
+  if (checkCap(ray, t, minimum)) {
+    xs.emplace_back(t, this);
+  }
+  t = (maximum - ray.origin.y) / ray.direction.y;
+  if (checkCap(ray, t, maximum)) {
+    xs.emplace_back(t, this);
+  }
+  return xs;
+}
+
+auto Cone::localNormalAt(const Point &p) const -> Vector {
+  auto dist = p.x * p.x + p.z * p.z;
+  if (dist < 1 && p.y >= maximum - EPSILON) {
+    return vector(0, 1, 0);
+  }
+  if (dist < 1 && p.y <= minimum + EPSILON) {
+    return vector(0, -1, 0);
+  }
+  auto y = std::sqrt(dist);
+  if (p.y > 0) {
+    y = -y;
+  }
+  return vector(p.x, y, p.z);
+}
+
+auto Cone::localIntersect(const Ray &ray) const
+    -> std::vector<std::pair<double, const Shape *>> {
   std::vector<std::pair<double, const Shape *>> xs = intersectCaps(ray);
+  auto a = ray.direction.x * ray.direction.x -
+           ray.direction.y * ray.direction.y +
+           ray.direction.z * ray.direction.z;
+  auto b = 2 * ray.origin.x * ray.direction.x -
+           2 * ray.origin.y * ray.direction.y +
+           2 * ray.origin.z * ray.direction.z;
+  auto c = ray.origin.x * ray.origin.x - ray.origin.y * ray.origin.y +
+           ray.origin.z * ray.origin.z;
+  if (approxEqual(a, 0.0)) {
+    if (!approxEqual(b, 0.0)) {
+      xs.emplace_back(-c / (2 * b), this);
+    }
+    return xs;
+  }
+
+  auto discriminant = b * b - 4 * a * c;
+  if (discriminant < 0) {
+    return xs;
+  }
 
   auto t1 = (-b - std::sqrt(discriminant)) / (2 * a);
   auto t2 = (-b + std::sqrt(discriminant)) / (2 * a);

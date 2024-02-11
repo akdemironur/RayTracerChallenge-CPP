@@ -523,7 +523,7 @@ TEST_CASE("Intersecting the caps of a closed cylinder", "[Cylinder]") {
   c.closed = true;
   RT::Ray r(RT::point(0, 3, 0), RT::vector(0, -1, 0));
   auto xs = c.localIntersect(r);
-  // REQUIRE(xs.size() == 2);
+  REQUIRE(xs.size() == 2);
 
   r = RT::Ray(RT::point(0, 3, -2), RT::vector(0, -1, 2).norm());
   xs = c.localIntersect(r);
@@ -540,4 +540,75 @@ TEST_CASE("Intersecting the caps of a closed cylinder", "[Cylinder]") {
   r = RT::Ray(RT::point(0, -1, -2), RT::vector(0, 1, 1).norm());
   xs = c.localIntersect(r);
   REQUIRE(xs.size() == 2);
+}
+
+TEST_CASE("The normal vector on a cylinder's end caps") {
+  auto c = RT::Cylinder();
+  c.minimum = 1;
+  c.maximum = 2;
+  c.closed = true;
+  auto n = c.localNormalAt(RT::point(0, 1, 0));
+  REQUIRE(n == RT::vector(0, -1, 0));
+
+  n = c.localNormalAt(RT::point(0.5, 1, 0));
+  REQUIRE(n == RT::vector(0, -1, 0));
+
+  n = c.localNormalAt(RT::point(0, 1, 0.5));
+  REQUIRE(n == RT::vector(0, -1, 0));
+
+  n = c.localNormalAt(RT::point(0, 2, 0));
+  REQUIRE(n == RT::vector(0, 1, 0));
+
+  n = c.localNormalAt(RT::point(0.5, 2, 0));
+  REQUIRE(n == RT::vector(0, 1, 0));
+
+  n = c.localNormalAt(RT::point(0, 2, 0.5));
+  REQUIRE(n == RT::vector(0, 1, 0));
+}
+
+TEST_CASE("Intersecting a cone with a ray") {
+  RT::Cone c;
+  RT::Ray r(RT::point(0, 0, -5), RT::vector(0, 0, 1));
+  auto xs = c.intersect(r);
+  REQUIRE(xs.size() == 2);
+  REQUIRE(RT::approxEqual(xs[0].first, 5.0));
+  REQUIRE(RT::approxEqual(xs[1].first, 5.0));
+
+  r = RT::Ray(RT::point(0, 0, -5), RT::vector(1, 1, 1).norm());
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 2);
+  REQUIRE(RT::approxEqual(xs[0].first, 8.66025));
+  REQUIRE(RT::approxEqual(xs[1].first, 8.66025));
+
+  r = RT::Ray(RT::point(1, 1, -5), RT::vector(-0.5, -1, 1).norm());
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 2);
+  REQUIRE(RT::approxEqual(xs[0].first, 4.55006));
+  REQUIRE(RT::approxEqual(xs[1].first, 49.44994));
+}
+
+TEST_CASE("Intersecting a cone with a ray parallel to one of its halves") {
+  RT::Cone c;
+  RT::Ray r(RT::point(0, 0, -1), RT::vector(0, 1, 1).norm());
+  auto xs = c.intersect(r);
+  REQUIRE(xs.size() == 1);
+  REQUIRE(RT::approxEqual(xs[0].first, 0.35355));
+}
+
+TEST_CASE("Intersecting a cone's end caps") {
+  RT::Cone c;
+  c.minimum = -0.5;
+  c.maximum = 0.5;
+  c.closed = true;
+  RT::Ray r(RT::point(0, 0, -5), RT::vector(0, 1, 0));
+  auto xs = c.intersect(r);
+  REQUIRE(xs.size() == 0);
+
+  r = RT::Ray(RT::point(0, 0, -0.25), RT::vector(0, 1, 1).norm());
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 2);
+
+  r = RT::Ray(RT::point(0, 0, -0.25), RT::vector(0, 1, 0));
+  xs = c.intersect(r);
+  REQUIRE(xs.size() == 4);
 }

@@ -48,13 +48,13 @@ auto Camera::render(const World &world) const -> Canvas {
       auto color = world.colorAt(ray);
       image.writePixel(x, y, color);
       progress += pixelProgress;
-      if (progress >= 1.0 / (barWidth + 1)) {
-        progress -= 1.0 / (barWidth + 1);
+      if (progress >= 1.0 / barWidth) {
+        progress -= 1.0 / barWidth;
         std::cout << "=" << std::flush;
       }
     }
   }
-  std::cout << "]\n";
+  std::cout << "=]\n";
   return image;
 }
 
