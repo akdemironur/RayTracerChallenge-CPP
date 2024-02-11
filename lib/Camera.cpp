@@ -8,7 +8,7 @@ Camera::Camera(int hsize, int vsize, double fieldOfView,
     : hsize(hsize), vsize(vsize), fieldOfView(fieldOfView),
       transform(transform) {
   auto halfView = std::tan(fieldOfView / 2);
-  double aspect = static_cast<double>(hsize) / vsize;
+  const double aspect = static_cast<double>(hsize) / vsize;
   if (aspect >= 1) {
     halfWidth = halfView;
     halfHeight = halfView / aspect;
@@ -19,7 +19,7 @@ Camera::Camera(int hsize, int vsize, double fieldOfView,
   pixelSize = (halfWidth * 2) / hsize;
 }
 
-Ray Camera::rayForPixel(int pixelX, int pixelY) const {
+auto Camera::rayForPixel(int pixelX, int pixelY) const -> Ray {
   const double pixelOffset = 0.5;
   auto xOffset = (pixelX + pixelOffset) * pixelSize;
   auto yOffset = (pixelY + pixelOffset) * pixelSize;
@@ -31,7 +31,7 @@ Ray Camera::rayForPixel(int pixelX, int pixelY) const {
   return {origin, direction};
 }
 
-Canvas Camera::render(const World &world) const {
+auto Camera::render(const World &world) const -> Canvas {
   Canvas image(hsize, vsize);
   for (auto y = 0; y < vsize; y++) {
     for (auto x = 0; x < hsize; x++) {

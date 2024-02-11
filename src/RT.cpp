@@ -6,7 +6,7 @@
 #include <memory>
 #include <random>
 
-int main() {
+auto main() -> int {
 
   std::unique_ptr<RT::Shape> middle = std::make_unique<RT::Sphere>();
   middle->transformation = RT::translation(-0.5, 1, 0.5);
@@ -16,7 +16,7 @@ int main() {
   middle->material.specular = 0.9;
   middle->material.reflective = 1;
   middle->material.refractiveIndex = 1.52;
-  middle->material.transparency = 1;
+  middle->material.transparency = 0.5;
   middle->material.shininess = 300;
 
   std::unique_ptr<RT::Shape> bot = std::make_unique<RT::Plane>();

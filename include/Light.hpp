@@ -9,7 +9,7 @@ public:
 
   Light();
   Light(Point position, Color intensity);
-  bool operator==(const Light &otherLight) const;
-  bool operator!=(const Light &otherLight) const;
+  auto operator==(const Light &otherLight) const -> bool;
+  auto operator!=(const Light &otherLight) const -> bool;
 };
 } // namespace RT

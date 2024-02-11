@@ -6,14 +6,15 @@ namespace RT {
 class Pattern {
 public:
   Pattern() : transformation(identityMatrix<4>()){};
-  [[nodiscard]] virtual RT::Color patternAt(const RT::Point &p) const = 0;
-  [[nodiscard]] virtual std::unique_ptr<Pattern> clone() const = 0;
+  [[nodiscard]] virtual auto patternAt(const RT::Point &p) const
+      -> RT::Color = 0;
+  [[nodiscard]] virtual auto clone() const -> std::unique_ptr<Pattern> = 0;
   virtual ~Pattern() = default;
   Transformation transformation;
   Pattern(const Pattern &) = default;
-  Pattern &operator=(const Pattern &) = default;
+  auto operator=(const Pattern &) -> Pattern & = default;
   Pattern(Pattern &&) = default;
-  Pattern &operator=(Pattern &&) = default;
+  auto operator=(Pattern &&) -> Pattern & = default;
 };
 
 class StripePattern : public Pattern {
@@ -22,25 +23,25 @@ public:
   Color b;
   StripePattern();
   StripePattern(Color a, Color b);
-  [[nodiscard]] Color patternAt(const Point &p) const override;
-  [[nodiscard]] std::unique_ptr<Pattern> clone() const override;
+  [[nodiscard]] auto patternAt(const Point &p) const -> Color override;
+  [[nodiscard]] auto clone() const -> std::unique_ptr<Pattern> override;
   ~StripePattern() override = default;
   StripePattern(const StripePattern &) = default;
-  StripePattern &operator=(const StripePattern &) = default;
+  auto operator=(const StripePattern &) -> StripePattern & = default;
   StripePattern(StripePattern &&) = default;
-  StripePattern &operator=(StripePattern &&) = default;
+  auto operator=(StripePattern &&) -> StripePattern & = default;
 };
 
 class TestPattern : public Pattern {
 public:
   TestPattern();
-  [[nodiscard]] Color patternAt(const Point &p) const override;
-  [[nodiscard]] std::unique_ptr<Pattern> clone() const override;
+  [[nodiscard]] auto patternAt(const Point &p) const -> Color override;
+  [[nodiscard]] auto clone() const -> std::unique_ptr<Pattern> override;
   ~TestPattern() override = default;
   TestPattern(const TestPattern &) = default;
-  TestPattern &operator=(const TestPattern &) = default;
+  auto operator=(const TestPattern &) -> TestPattern & = default;
   TestPattern(TestPattern &&) = default;
-  TestPattern &operator=(TestPattern &&) = default;
+  auto operator=(TestPattern &&) -> TestPattern & = default;
 };
 
 class GradientPattern : public Pattern {
@@ -50,13 +51,13 @@ public:
   Color b;
   GradientPattern();
   GradientPattern(Color a, Color b);
-  [[nodiscard]] Color patternAt(const Point &p) const override;
-  [[nodiscard]] std::unique_ptr<Pattern> clone() const override;
+  [[nodiscard]] auto patternAt(const Point &p) const -> Color override;
+  [[nodiscard]] auto clone() const -> std::unique_ptr<Pattern> override;
   ~GradientPattern() override = default;
   GradientPattern(const GradientPattern &) = default;
-  GradientPattern &operator=(const GradientPattern &) = default;
+  auto operator=(const GradientPattern &) -> GradientPattern & = default;
   GradientPattern(GradientPattern &&) = default;
-  GradientPattern &operator=(GradientPattern &&) = default;
+  auto operator=(GradientPattern &&) -> GradientPattern & = default;
 };
 
 class RingPattern : public Pattern {
@@ -65,13 +66,13 @@ public:
   Color b;
   RingPattern();
   RingPattern(Color a, Color b);
-  [[nodiscard]] Color patternAt(const Point &p) const override;
-  [[nodiscard]] std::unique_ptr<Pattern> clone() const override;
+  [[nodiscard]] auto patternAt(const Point &p) const -> Color override;
+  [[nodiscard]] auto clone() const -> std::unique_ptr<Pattern> override;
   ~RingPattern() override = default;
   RingPattern(const RingPattern &) = default;
-  RingPattern &operator=(const RingPattern &) = default;
+  auto operator=(const RingPattern &) -> RingPattern & = default;
   RingPattern(RingPattern &&) = default;
-  RingPattern &operator=(RingPattern &&) = default;
+  auto operator=(RingPattern &&) -> RingPattern & = default;
 };
 
 class CheckersPattern : public Pattern {
@@ -80,13 +81,13 @@ public:
   Color b;
   CheckersPattern();
   CheckersPattern(Color a, Color b);
-  [[nodiscard]] Color patternAt(const Point &p) const override;
-  [[nodiscard]] std::unique_ptr<Pattern> clone() const override;
+  [[nodiscard]] auto patternAt(const Point &p) const -> Color override;
+  [[nodiscard]] auto clone() const -> std::unique_ptr<Pattern> override;
   ~CheckersPattern() override = default;
   CheckersPattern(const CheckersPattern &) = default;
-  CheckersPattern &operator=(const CheckersPattern &) = default;
+  auto operator=(const CheckersPattern &) -> CheckersPattern & = default;
   CheckersPattern(CheckersPattern &&) = default;
-  CheckersPattern &operator=(CheckersPattern &&) = default;
+  auto operator=(CheckersPattern &&) -> CheckersPattern & = default;
 };
 
 } // namespace RT

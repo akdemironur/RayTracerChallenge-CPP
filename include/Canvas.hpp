@@ -10,10 +10,10 @@ class Canvas {
 public:
   Canvas(int width, int height);
   void writePixel(int pixelX, int pixelY, Color color);
-  [[nodiscard]] Color pixelAt(int pixelX, int pixelY) const;
-  [[nodiscard]] std::string PPMHeader() const;
-  [[nodiscard]] std::string PPMBody() const;
-  [[nodiscard]] std::string PPM() const;
+  [[nodiscard]] auto pixelAt(int pixelX, int pixelY) const -> Color;
+  [[nodiscard]] auto PPMHeader() const -> std::string;
+  [[nodiscard]] auto PPMBody() const -> std::string;
+  [[nodiscard]] auto PPM() const -> std::string;
   void savePPM(const std::string &filename) const;
   int width, height;
 

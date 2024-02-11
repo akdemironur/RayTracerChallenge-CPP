@@ -31,9 +31,9 @@ public:
   double refractiveIndex;
   std::unique_ptr<Pattern> pattern;
   auto operator==(const Material &m) const -> bool;
-  bool operator!=(const Material &m) const;
-  Material &operator=(const Material &m);
-  Material &operator=(Material &&m) noexcept;
+  auto operator!=(const Material &m) const -> bool;
+  auto operator=(const Material &m) -> Material &;
+  auto operator=(Material &&m) noexcept -> Material &;
 };
 
 class Shape {
@@ -42,21 +42,22 @@ public:
   Shape(const Transformation &transformation, Material material)
       : transformation(transformation), material(std::move(material)){};
   Shape(const Shape &other) = default;
-  Shape &operator=(const Shape &other) = default;
+  auto operator=(const Shape &other) -> Shape & = default;
   Shape(Shape &&other) noexcept = default;
-  Shape &operator=(Shape &&other) noexcept = default;
+  auto operator=(Shape &&other) noexcept -> Shape & = default;
   Transformation transformation;
   Material material;
-  [[nodiscard]] Tuple lighting(const Light &light, const Point &point,
-                               const Vector &eye, const Vector &normal,
-                               bool inShadow = false) const;
-  [[nodiscard]] Color patternAt(const Point &point) const;
-  [[nodiscard]] virtual Vector localNormalAt(const Point &point) const = 0;
-  [[nodiscard]] Vector normalAt(const Point &point) const;
-  [[nodiscard]] virtual std::vector<std::pair<double, const Shape *>>
-  localIntersect(const Ray &ray) const = 0;
-  [[nodiscard]] std::vector<std::pair<double, const Shape *>>
-  intersect(const Ray &ray) const;
+  [[nodiscard]] auto lighting(const Light &light, const Point &point,
+                              const Vector &eye, const Vector &normal,
+                              bool inShadow = false) const -> Tuple;
+  [[nodiscard]] auto patternAt(const Point &point) const -> Color;
+  [[nodiscard]] virtual auto localNormalAt(const Point &point) const
+      -> Vector = 0;
+  [[nodiscard]] auto normalAt(const Point &point) const -> Vector;
+  [[nodiscard]] virtual auto localIntersect(const Ray &ray) const
+      -> std::vector<std::pair<double, const Shape *>> = 0;
+  [[nodiscard]] auto intersect(const Ray &ray) const
+      -> std::vector<std::pair<double, const Shape *>>;
   virtual ~Shape() = default;
 };
 
@@ -66,12 +67,12 @@ public:
   Sphere(const Transformation &transformation, const Material &material)
       : Shape(transformation, material){};
   Sphere(const Sphere &other) = default;
-  Sphere &operator=(const Sphere &other) = default;
+  auto operator=(const Sphere &other) -> Sphere & = default;
   Sphere(Sphere &&other) noexcept = default;
-  Sphere &operator=(Sphere &&other) noexcept = default;
-  [[nodiscard]] Vector localNormalAt(const Point &point) const override;
-  [[nodiscard]] std::vector<std::pair<double, const Shape *>>
-  localIntersect(const Ray &ray) const override;
+  auto operator=(Sphere &&other) noexcept -> Sphere & = default;
+  [[nodiscard]] auto localNormalAt(const Point &point) const -> Vector override;
+  [[nodiscard]] auto localIntersect(const Ray &ray) const
+      -> std::vector<std::pair<double, const Shape *>> override;
   ~Sphere() override = default;
 };
 
@@ -81,12 +82,12 @@ public:
   Plane(const Transformation &transformation, const Material &material)
       : Shape(transformation, material){};
   Plane(const Plane &other) = default;
-  Plane &operator=(const Plane &other) = default;
+  auto operator=(const Plane &other) -> Plane & = default;
   Plane(Plane &&other) noexcept = default;
-  Plane &operator=(Plane &&other) noexcept = default;
-  [[nodiscard]] Vector localNormalAt(const Point &point) const override;
-  [[nodiscard]] std::vector<std::pair<double, const Shape *>>
-  localIntersect(const Ray &ray) const override;
+  auto operator=(Plane &&other) noexcept -> Plane & = default;
+  [[nodiscard]] auto localNormalAt(const Point &point) const -> Vector override;
+  [[nodiscard]] auto localIntersect(const Ray &ray) const
+      -> std::vector<std::pair<double, const Shape *>> override;
   ~Plane() override = default;
 };
 
@@ -96,12 +97,12 @@ public:
   Cube(const Transformation &transformation, const Material &material)
       : Shape(transformation, material){};
   Cube(const Cube &other) = default;
-  Cube &operator=(const Cube &other) = default;
+  auto operator=(const Cube &other) -> Cube & = default;
   Cube(Cube &&other) noexcept = default;
-  Cube &operator=(Cube &&other) noexcept = default;
-  [[nodiscard]] Vector localNormalAt(const Point &point) const override;
-  [[nodiscard]] std::vector<std::pair<double, const Shape *>>
-  localIntersect(const Ray &ray) const override;
+  auto operator=(Cube &&other) noexcept -> Cube & = default;
+  [[nodiscard]] auto localNormalAt(const Point &point) const -> Vector override;
+  [[nodiscard]] auto localIntersect(const Ray &ray) const
+      -> std::vector<std::pair<double, const Shape *>> override;
   ~Cube() override = default;
 };
 
@@ -117,21 +118,21 @@ public:
       : Shape(transformation, material), minimum(min), maximum(max),
         closed(closed){};
   Cylinder(const Cylinder &other) = default;
-  Cylinder &operator=(const Cylinder &other) = default;
+  auto operator=(const Cylinder &other) -> Cylinder & = default;
   Cylinder(Cylinder &&other) noexcept = default;
-  Cylinder &operator=(Cylinder &&other) noexcept = default;
+  auto operator=(Cylinder &&other) noexcept -> Cylinder & = default;
   double minimum;
   double maximum;
   bool closed;
-  [[nodiscard]] Vector localNormalAt(const Point &point) const override;
-  [[nodiscard]] std::vector<std::pair<double, const Shape *>>
-  localIntersect(const Ray &ray) const override;
+  [[nodiscard]] auto localNormalAt(const Point &point) const -> Vector override;
+  [[nodiscard]] auto localIntersect(const Ray &ray) const
+      -> std::vector<std::pair<double, const Shape *>> override;
   ~Cylinder() override = default;
 
 private:
-  [[nodiscard]] std::vector<std::pair<double, const Shape *>>
-  intersectCaps(const Ray &ray) const;
-  [[nodiscard]] static bool checkCap(const Ray &ray, double t);
+  [[nodiscard]] auto intersectCaps(const Ray &ray) const
+      -> std::vector<std::pair<double, const Shape *>>;
+  [[nodiscard]] static auto checkCap(const Ray &ray, double t) -> bool;
 };
 
 using Intersection = std::pair<double, const Shape *>;
@@ -149,21 +150,21 @@ public:
   Vector eye;
   Vector normal;
   Vector reflect;
-  [[nodiscard]] double schlick() const;
+  [[nodiscard]] auto schlick() const -> double;
   bool inside;
 };
 
 template <typename... Intersections>
-std::vector<Intersection> intersections(Intersections... is) {
+auto intersections(Intersections... is) -> std::vector<Intersection> {
   return std::vector<Intersection>{is...};
 }
 
 constexpr double REFRACTIVE_INDEX_FOR_GLASS = 1.5;
 
-std::optional<Intersection> hit(const std::vector<Intersection> &xs);
+auto hit(const std::vector<Intersection> &xs) -> std::optional<Intersection>;
 
-Sphere glassSphere(Transformation transform = identityMatrix<4>(),
-                   double transparency = 1.0,
-                   double refractiveIndex = REFRACTIVE_INDEX_FOR_GLASS);
+auto glassSphere(Transformation transform = identityMatrix<4>(),
+                 double transparency = 1.0,
+                 double refractiveIndex = REFRACTIVE_INDEX_FOR_GLASS) -> Sphere;
 
 } // namespace RT

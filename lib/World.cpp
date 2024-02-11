@@ -19,7 +19,7 @@ World::World(bool defaultWorld) : light{point(-10, 10, -10), color(1, 1, 1)} {
   }
 }
 
-bool World::contains(const Shape &object) const {
+auto World::contains(const Shape &object) const -> bool {
   return std::find_if(objects.begin(), objects.end(), [&](const auto &obj) {
            return obj.get()->transformation == object.transformation &&
                   obj.get()->material == object.material;
@@ -30,9 +30,9 @@ void World::add(std::unique_ptr<Shape> object) {
   objects.push_back(std::move(object));
 }
 
-size_t World::count() const { return objects.size(); }
+auto World::count() const -> size_t { return objects.size(); }
 
-std::vector<Intersection> World::intersect(const Ray &ray) const {
+auto World::intersect(const Ray &ray) const -> std::vector<Intersection> {
   std::vector<Intersection> result;
   for (const std::unique_ptr<Shape> &object : objects) {
     auto xs = object->intersect(ray);
@@ -49,7 +49,8 @@ std::vector<Intersection> World::intersect(const Ray &ray) const {
   return result;
 }
 
-Color World::reflectedColor(const Computations &comps, int remaining) const {
+auto World::reflectedColor(const Computations &comps, int remaining) const
+    -> Color {
   if (approxEqual(comps.object->material.reflective, 0.0) || remaining <= 0) {
     return color(0, 0, 0);
   }
@@ -58,7 +59,8 @@ Color World::reflectedColor(const Computations &comps, int remaining) const {
   return color * comps.object->material.reflective;
 }
 
-Color World::refractedColor(const Computations &comps, int remaining) const {
+auto World::refractedColor(const Computations &comps, int remaining) const
+    -> Color {
   if (approxEqual(comps.object->material.transparency, 0.0) || remaining <= 0) {
     return color(0, 0, 0);
   }
@@ -75,7 +77,7 @@ Color World::refractedColor(const Computations &comps, int remaining) const {
          comps.object->material.transparency;
 }
 
-Color World::shadeHit(const Computations &comps, int remaining) const {
+auto World::shadeHit(const Computations &comps, int remaining) const -> Color {
   bool isShadowed = this->isShadowed(comps.overPoint);
   auto surface = comps.object->lighting(light, comps.overPoint, comps.eye,
                                         comps.normal, isShadowed);
@@ -91,7 +93,7 @@ Color World::shadeHit(const Computations &comps, int remaining) const {
   return refracted + reflected + surface;
 }
 
-Color World::colorAt(const Ray &ray, int remaining) const {
+auto World::colorAt(const Ray &ray, int remaining) const -> Color {
   auto xs = intersect(ray);
   auto i = hit(xs);
   if (i.has_value()) {
@@ -100,7 +102,7 @@ Color World::colorAt(const Ray &ray, int remaining) const {
   }
   return color(0, 0, 0);
 }
-bool World::isShadowed(const Point &point) const {
+auto World::isShadowed(const Point &point) const -> bool {
   auto v = light.position - point;
   auto distance = v.magnitude();
   auto direction = v.norm();

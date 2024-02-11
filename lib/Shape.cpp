@@ -67,17 +67,17 @@ auto Shape::normalAt(const Point &point) const -> Vector {
   return worldNormal.norm();
 }
 
-std::vector<std::pair<double, const Shape *>>
-Shape::intersect(const Ray &ray) const {
+auto Shape::intersect(const Ray &ray) const
+    -> std::vector<std::pair<double, const Shape *>> {
   auto localRay = ray.transform(transformation.inverse());
   return localIntersect(localRay);
 }
 
-Vector Sphere::localNormalAt(const Point &p) const {
+auto Sphere::localNormalAt(const Point &p) const -> Vector {
   return (p - point(0, 0, 0));
 }
 
-Vector Plane::localNormalAt(const Point & /*p*/) const {
+auto Plane::localNormalAt(const Point & /*p*/) const -> Vector {
   return vector(0, 1, 0);
 }
 
@@ -113,7 +113,7 @@ auto Shape::lighting(const Light &light, const Point &point, const Vector &eye,
   return ambient + diffuse + specular;
 }
 
-std::vector<Intersection> Sphere::localIntersect(const Ray &ray) const {
+auto Sphere::localIntersect(const Ray &ray) const -> std::vector<Intersection> {
   std::vector<Intersection> xs;
   auto sphere_to_ray = ray.origin - point(0, 0, 0);
   auto a = dot(ray.direction, ray.direction);
@@ -126,7 +126,8 @@ std::vector<Intersection> Sphere::localIntersect(const Ray &ray) const {
   }
   return xs;
 }
-std::vector<Intersection> Plane::localIntersect(const Ray &ray) const {
+
+auto Plane::localIntersect(const Ray &ray) const -> std::vector<Intersection> {
   if (std::abs(ray.direction.y) < EPSILON) {
     return {};
   }
@@ -134,7 +135,7 @@ std::vector<Intersection> Plane::localIntersect(const Ray &ray) const {
   return {Intersection(t, this)};
 }
 
-std::optional<Intersection> hit(const std::vector<Intersection> &xs) {
+auto hit(const std::vector<Intersection> &xs) -> std::optional<Intersection> {
   std::optional<Intersection> result;
   for (const auto &i : xs) {
     if (i.first >= 0) {
@@ -201,7 +202,7 @@ Computations::Computations(const Intersection &i, const Ray &r,
   reflect = r.direction.reflect(normal);
 }
 
-Material &Material::operator=(const Material &m) {
+auto Material::operator=(const Material &m) -> Material & {
   if (this == &m) {
     return *this;
   }
@@ -219,7 +220,7 @@ Material &Material::operator=(const Material &m) {
   return *this;
 }
 
-Material &Material::operator=(Material &&m) noexcept {
+auto Material::operator=(Material &&m) noexcept -> Material & {
   color = m.color;
   ambient = m.ambient;
   diffuse = m.diffuse;
@@ -234,8 +235,8 @@ Material &Material::operator=(Material &&m) noexcept {
   return *this;
 }
 
-Sphere glassSphere(Transformation transform, double transparency,
-                   double refractiveIndex) {
+auto glassSphere(Transformation transform, double transparency,
+                 double refractiveIndex) -> Sphere {
   auto s = Sphere();
   s.transformation = transform;
   s.material.transparency = transparency;
@@ -243,7 +244,7 @@ Sphere glassSphere(Transformation transform, double transparency,
   return s;
 }
 
-double Computations::schlick() const {
+auto Computations::schlick() const -> double {
   auto cos = dot(eye, normal);
   if (n1 > n2) {
     auto n = n1 / n2;
@@ -259,7 +260,7 @@ double Computations::schlick() const {
   return r0 + (1 - r0) * std::pow(1 - cos, 5);
 }
 
-Vector Cube::localNormalAt(const Point &p) const {
+auto Cube::localNormalAt(const Point &p) const -> Vector {
   auto maxc = std::max({std::abs(p.x), std::abs(p.y), std::abs(p.z)});
 
   if (approxEqual(maxc, std::abs(p.x))) {
@@ -272,7 +273,7 @@ Vector Cube::localNormalAt(const Point &p) const {
   return vector(0, 0, p.z);
 }
 
-std::pair<double, double> checkAxis(double origin, double direction) {
+auto checkAxis(double origin, double direction) -> std::pair<double, double> {
   auto tmin_numerator = -1 - origin;
   auto tmax_numerator = 1 - origin;
   double tmin = NAN;
@@ -290,8 +291,8 @@ std::pair<double, double> checkAxis(double origin, double direction) {
   return {tmin, tmax};
 }
 
-std::vector<std::pair<double, const Shape *>>
-Cube::localIntersect(const Ray &ray) const {
+auto Cube::localIntersect(const Ray &ray) const
+    -> std::vector<std::pair<double, const Shape *>> {
   auto [xtmin, xtmax] = checkAxis(ray.origin.x, ray.direction.x);
   auto [ytmin, ytmax] = checkAxis(ray.origin.y, ray.direction.y);
   auto [ztmin, ztmax] = checkAxis(ray.origin.z, ray.direction.z);
@@ -303,7 +304,7 @@ Cube::localIntersect(const Ray &ray) const {
   return {{tmin, this}, {tmax, this}};
 }
 
-Vector Cylinder::localNormalAt(const Point &p) const {
+auto Cylinder::localNormalAt(const Point &p) const -> Vector {
   auto dist = p.x * p.x + p.z * p.z;
   if (dist < 1 && p.y >= 1 - EPSILON) {
     return vector(0, 1, 0);
@@ -314,14 +315,14 @@ Vector Cylinder::localNormalAt(const Point &p) const {
   return vector(p.x, 0, p.z);
 }
 
-bool Cylinder::checkCap(const Ray &ray, double t) {
+auto Cylinder::checkCap(const Ray &ray, double t) -> bool {
   auto x = ray.origin.x + t * ray.direction.x;
   auto z = ray.origin.z + t * ray.direction.z;
   return x * x + z * z <= 1;
 }
 
-std::vector<std::pair<double, const Shape *>>
-Cylinder::intersectCaps(const Ray &ray) const {
+auto Cylinder::intersectCaps(const Ray &ray) const
+    -> std::vector<std::pair<double, const Shape *>> {
   std::vector<std::pair<double, const Shape *>> xs;
   if (!closed || approxEqual(ray.direction.y, 0.0)) {
     return xs;
@@ -337,8 +338,8 @@ Cylinder::intersectCaps(const Ray &ray) const {
   return xs;
 }
 
-std::vector<std::pair<double, const Shape *>>
-Cylinder::localIntersect(const Ray &ray) const {
+auto Cylinder::localIntersect(const Ray &ray) const
+    -> std::vector<std::pair<double, const Shape *>> {
   auto a =
       ray.direction.x * ray.direction.x + ray.direction.z * ray.direction.z;
   if (approxEqual(a, 0.0)) {

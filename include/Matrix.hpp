@@ -11,16 +11,16 @@ private:
 public:
   Matrix();
   explicit Matrix(const std::array<double, m * m> &values);
-  const double &operator()(int i, int j) const;
-  double &operator()(int i, int j);
-  bool operator==(const Matrix<m> &other) const;
-  [[nodiscard]] Matrix<m> transpose() const;
-  [[nodiscard]] Matrix<m - 1> submatrix(int row, int col) const;
-  [[nodiscard]] double minor(int row, int col) const;
-  [[nodiscard]] double cofactor(int row, int col) const;
-  [[nodiscard]] double determinant() const;
-  [[nodiscard]] bool isInvertible() const;
-  [[nodiscard]] Matrix<m> inverse() const;
+  auto operator()(int i, int j) const -> const double &;
+  auto operator()(int i, int j) -> double &;
+  auto operator==(const Matrix<m> &other) const -> bool;
+  [[nodiscard]] auto transpose() const -> Matrix<m>;
+  [[nodiscard]] auto submatrix(int row, int col) const -> Matrix<m - 1>;
+  [[nodiscard]] auto minor(int row, int col) const -> double;
+  [[nodiscard]] auto cofactor(int row, int col) const -> double;
+  [[nodiscard]] auto determinant() const -> double;
+  [[nodiscard]] auto isInvertible() const -> bool;
+  [[nodiscard]] auto inverse() const -> Matrix<m>;
 };
 
 using Transformation = Matrix<4>;
@@ -30,17 +30,19 @@ template <size_t m> Matrix<m>::Matrix() : data(std::array<double, m * m>(0)) {}
 template <size_t m>
 Matrix<m>::Matrix(const std::array<double, m * m> &values) : data(values) {}
 
-template <size_t m> double &Matrix<m>::operator()(int i, int j) {
+template <size_t m> auto Matrix<m>::operator()(int i, int j) -> double & {
   assert(i >= 0 && i < m && j >= 0 && j < m && "out of bounds");
   return data.at(i * m + j);
 }
 
-template <size_t m> const double &Matrix<m>::operator()(int i, int j) const {
+template <size_t m>
+auto Matrix<m>::operator()(int i, int j) const -> const double & {
   assert(i >= 0 && i < m && j >= 0 && j < m && "out of bounds");
   return data.at(i * m + j);
 }
 
-template <size_t m> bool Matrix<m>::operator==(const Matrix<m> &other) const {
+template <size_t m>
+auto Matrix<m>::operator==(const Matrix<m> &other) const -> bool {
   for (auto i = 0; i < m * m; i++) {
     if (!approxEqual(data[i], other.data[i])) {
       return false;
@@ -50,7 +52,7 @@ template <size_t m> bool Matrix<m>::operator==(const Matrix<m> &other) const {
 }
 
 template <size_t m>
-Matrix<m> operator+(const Matrix<m> &a, const Matrix<m> &b) {
+auto operator+(const Matrix<m> &a, const Matrix<m> &b) -> Matrix<m> {
   std::array<double, m * m> v;
   for (int i = 0; i < m * m; i++) {
     v[i] = a.data[i] + b.data[i];
@@ -59,7 +61,7 @@ Matrix<m> operator+(const Matrix<m> &a, const Matrix<m> &b) {
 }
 
 template <size_t m>
-Matrix<m> operator-(const Matrix<m> &a, const Matrix<m> &b) {
+auto operator-(const Matrix<m> &a, const Matrix<m> &b) -> Matrix<m> {
   std::array<double, m * m> v;
   for (int i = 0; i < m * m; i++) {
     v[i] = a.data[i] - b.data[i];
@@ -68,7 +70,7 @@ Matrix<m> operator-(const Matrix<m> &a, const Matrix<m> &b) {
 }
 
 template <size_t m>
-Matrix<m> operator*(const Matrix<m> &a, const Matrix<m> &b) {
+auto operator*(const Matrix<m> &a, const Matrix<m> &b) -> Matrix<m> {
   std::array<double, m * m> v{};
   for (int i = 0; i < m; i++) {
     for (int j = 0; j < m; j++) {
@@ -82,7 +84,8 @@ Matrix<m> operator*(const Matrix<m> &a, const Matrix<m> &b) {
   return Matrix<m>(v);
 }
 
-template <size_t m> Tuple operator*(const Matrix<m> &a, const Tuple &b) {
+template <size_t m>
+auto operator*(const Matrix<m> &a, const Tuple &b) -> Tuple {
   std::array<double, 4> v{0, 0, 0, 0};
   for (int i = 0; i < m; i++) {
     double sum = 0;
@@ -94,7 +97,7 @@ template <size_t m> Tuple operator*(const Matrix<m> &a, const Tuple &b) {
   return {v[0], v[1], v[2], v[3]};
 }
 
-template <size_t m> Matrix<m> identityMatrix() {
+template <size_t m> auto identityMatrix() -> Matrix<m> {
   std::array<double, m * m> v{0};
   for (int i = 0; i < m; i++) {
     v.at(i * m + i) = 1;
@@ -102,11 +105,11 @@ template <size_t m> Matrix<m> identityMatrix() {
   return Matrix<m>(v);
 }
 
-template <> inline double Matrix<2>::determinant() const {
+template <> inline auto Matrix<2>::determinant() const -> double {
   return data[0] * data[3] - data[1] * data[2];
 }
 
-template <size_t m> double Matrix<m>::determinant() const {
+template <size_t m> auto Matrix<m>::determinant() const -> double {
   double det = 0;
   for (int i = 0; i < m; i++) {
     det += data[i] * cofactor(0, i);
@@ -114,11 +117,11 @@ template <size_t m> double Matrix<m>::determinant() const {
   return det;
 }
 
-template <size_t m> bool Matrix<m>::isInvertible() const {
+template <size_t m> auto Matrix<m>::isInvertible() const -> bool {
   return determinant() != 0;
 }
 
-template <size_t m> Matrix<m> Matrix<m>::inverse() const {
+template <size_t m> auto Matrix<m>::inverse() const -> Matrix<m> {
   double det = determinant();
   std::array<double, m * m> v;
   for (int i = 0; i < m; i++) {
@@ -129,7 +132,8 @@ template <size_t m> Matrix<m> Matrix<m>::inverse() const {
   return Matrix<m>(v);
 }
 
-template <size_t m> Matrix<m - 1> Matrix<m>::submatrix(int row, int col) const {
+template <size_t m>
+auto Matrix<m>::submatrix(int row, int col) const -> Matrix<m - 1> {
   std::array<double, (m - 1) * (m - 1)> v;
   int k = 0;
   for (int i = 0; i < m; i++) {
@@ -146,16 +150,16 @@ template <size_t m> Matrix<m - 1> Matrix<m>::submatrix(int row, int col) const {
   return Matrix<m - 1>(v);
 }
 
-template <size_t m> double Matrix<m>::minor(int row, int col) const {
+template <size_t m> auto Matrix<m>::minor(int row, int col) const -> double {
   auto sm = submatrix(row, col);
   return sm.determinant();
 }
 
-template <size_t m> double Matrix<m>::cofactor(int row, int col) const {
+template <size_t m> auto Matrix<m>::cofactor(int row, int col) const -> double {
   return minor(row, col) * (1 - 2 * ((row + col) % 2));
 }
 
-template <size_t m> Matrix<m> Matrix<m>::transpose() const {
+template <size_t m> auto Matrix<m>::transpose() const -> Matrix<m> {
   std::array<double, m * m> v;
   for (int i = 0; i < m; i++) {
     for (int j = 0; j < m; j++) {
@@ -165,7 +169,7 @@ template <size_t m> Matrix<m> Matrix<m>::transpose() const {
   return Matrix<m>(v);
 }
 
-inline Transformation translation(double x, double y, double z) {
+inline auto translation(double x, double y, double z) -> Transformation {
   auto m = identityMatrix<4>();
   m(0, 3) = x;
   m(1, 3) = y;
@@ -173,7 +177,7 @@ inline Transformation translation(double x, double y, double z) {
   return m;
 }
 
-inline Transformation scaling(double x, double y, double z) {
+inline auto scaling(double x, double y, double z) -> Transformation {
   auto m = identityMatrix<4>();
   m(0, 0) = x;
   m(1, 1) = y;
@@ -181,7 +185,7 @@ inline Transformation scaling(double x, double y, double z) {
   return m;
 }
 
-inline Transformation rotationX(double r) {
+inline auto rotationX(double r) -> Transformation {
   auto m = identityMatrix<4>();
   m(1, 1) = std::cos(r);
   m(1, 2) = -std::sin(r);
@@ -190,7 +194,7 @@ inline Transformation rotationX(double r) {
   return m;
 }
 
-inline Transformation rotationY(double r) {
+inline auto rotationY(double r) -> Transformation {
   auto m = identityMatrix<4>();
   m(0, 0) = std::cos(r);
   m(0, 2) = std::sin(r);
@@ -199,7 +203,7 @@ inline Transformation rotationY(double r) {
   return m;
 }
 
-inline Transformation rotationZ(double r) {
+inline auto rotationZ(double r) -> Transformation {
   auto m = identityMatrix<4>();
   m(0, 0) = std::cos(r);
   m(0, 1) = -std::sin(r);
@@ -208,8 +212,8 @@ inline Transformation rotationZ(double r) {
   return m;
 }
 
-inline Transformation shearing(double xy, double xz, double yx, double yz,
-                               double zx, double zy) {
+inline auto shearing(double xy, double xz, double yx, double yz, double zx,
+                     double zy) -> Transformation {
   auto m = identityMatrix<4>();
   m(0, 1) = xy;
   m(0, 2) = xz;
@@ -220,17 +224,17 @@ inline Transformation shearing(double xy, double xz, double yx, double yz,
   return m;
 }
 
-inline Transformation operator>>=(const Transformation &B,
-                                  const Transformation &A) {
+inline auto operator>>=(const Transformation &B, const Transformation &A)
+    -> Transformation {
   return A * B;
 }
 
-inline Tuple operator>>=(const Tuple &b, const Transformation &A) {
+inline auto operator>>=(const Tuple &b, const Transformation &A) -> Tuple {
   return A * b;
 }
 
-inline Transformation viewTransform(const Point &from, const Point &to,
-                                    const Vector &up) {
+inline auto viewTransform(const Point &from, const Point &to, const Vector &up)
+    -> Transformation {
   auto forward = (to - from).norm();
   auto left = cross(forward, up.norm());
   auto trueUp = cross(left, forward);

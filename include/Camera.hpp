@@ -16,8 +16,8 @@ public:
   double pixelSize;
   double halfWidth;
   double halfHeight;
-  [[nodiscard]] Ray rayForPixel(int pixelX, int pixelY) const;
-  [[nodiscard]] Canvas render(const World &world) const;
+  [[nodiscard]] auto rayForPixel(int pixelX, int pixelY) const -> Ray;
+  [[nodiscard]] auto render(const World &world) const -> Canvas;
 };
 
 } // namespace RT
