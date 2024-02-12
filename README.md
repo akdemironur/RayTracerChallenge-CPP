@@ -8,8 +8,12 @@ To use this library, include `RT.hpp` after compiling the necessary libraries. R
 
 ### Example Usage
 
-Explore `src/RT.cpp` for a example and demo showcasing how to render the cover of the book using the library.
-
+Explore `src/RT.cpp` for a example and demo showcasing how to render the cover of the book using the library. To build `RT`:
+```console
+mkdir build && cd build
+cmake ..
+make RT
+```
 ![Sample Image](./sample.png)
 
 ## License
