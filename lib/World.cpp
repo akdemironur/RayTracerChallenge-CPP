@@ -6,12 +6,12 @@
 
 namespace RT {
 
-World::World(bool defaultWorld) : light{point(-10, 10, -10), color(1, 1, 1)} {
+World::World(bool defaultWorld) {
 
   if (defaultWorld) {
     objects.push_back(std::make_unique<Sphere>(Sphere()));
     objects.push_back(std::make_unique<Sphere>(Sphere()));
-
+    lights.emplace_back(point(-10, 10, -10), color(1, 1, 1));
     objects[0]->material.color = color(0.8, 1.0, 0.6);
     objects[0]->material.diffuse = 0.7;
     objects[0]->material.specular = 0.2;
@@ -78,9 +78,14 @@ auto World::refractedColor(const Computations &comps, int remaining) const
 }
 
 auto World::shadeHit(const Computations &comps, int remaining) const -> Color {
-  bool isShadowed = this->isShadowed(comps.overPoint);
-  auto surface = comps.object->lighting(light, comps.overPoint, comps.eye,
-                                        comps.normal, isShadowed);
+
+  RT::Color surface = RT::color(0, 0, 0);
+  for (const auto &light : lights) {
+    bool isShadowed = this->isShadowed(comps.overPoint, light);
+    surface =
+        surface + comps.object->lighting(light, comps.overPoint, comps.eye,
+                                         comps.normal, isShadowed);
+  }
   auto reflected = reflectedColor(comps, remaining);
   auto refracted = refractedColor(comps, remaining);
 
@@ -102,8 +107,8 @@ auto World::colorAt(const Ray &ray, int remaining) const -> Color {
   }
   return color(0, 0, 0);
 }
-auto World::isShadowed(const Point &point) const -> bool {
-  auto v = light.position - point;
+auto World::isShadowed(const Point &point, const Light &l) const -> bool {
+  auto v = l.position - point;
   auto distance = v.magnitude();
   auto direction = v.norm();
   auto r = Ray(point, direction);

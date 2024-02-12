@@ -13,7 +13,7 @@ public:
   static constexpr int MAX_RECURSION_DEPTH = 5;
 
   explicit World(bool defaultWorld = true);
-  Light light;
+  std::vector<Light> lights;
   void add(std::unique_ptr<Shape> object);
   [[nodiscard]] auto contains(const Shape &object) const -> bool;
   [[nodiscard]] auto count() const -> size_t;
@@ -31,7 +31,8 @@ public:
   [[nodiscard]] auto refractedColor(const Computations &comps,
                                     int remaining = MAX_RECURSION_DEPTH) const
       -> Color;
-  [[nodiscard]] auto isShadowed(const Point &point) const -> bool;
+  [[nodiscard]] auto isShadowed(const Point &point, const Light &l) const
+      -> bool;
 
 private:
   std::vector<std::unique_ptr<Shape>> objects;

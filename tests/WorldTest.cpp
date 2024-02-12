@@ -6,8 +6,8 @@
 
 TEST_CASE("Creating a world") {
   RT::World w;
-  REQUIRE(w.light.position == RT::point(-10, 10, -10));
-  REQUIRE(w.light.intensity == RT::color(1, 1, 1));
+  REQUIRE(w.lights[0].position == RT::point(-10, 10, -10));
+  REQUIRE(w.lights[0].intensity == RT::color(1, 1, 1));
   REQUIRE(w.count() == 2);
 
   auto s1 = RT::Sphere();
@@ -45,9 +45,9 @@ TEST_CASE("Shading an intersection") {
 
 TEST_CASE("Shading an intersection from the inside") {
   RT::World w;
-  w.light = RT::Light(RT::point(0, 0.25, 0), RT::color(1, 1, 1));
+  w.lights[0] = RT::Light(RT::point(0, 0.25, 0), RT::color(1, 1, 1));
   auto r = RT::Ray(RT::point(0, 0, 0), RT::vector(0, 0, 1));
-  auto shape = w.objects[1].get();
+  auto *shape = w.objects[1].get();
   auto i = RT::Intersection(0.5, shape);
   auto comps = RT::Computations(i, r);
   auto c = w.shadeHit(comps);
@@ -82,33 +82,32 @@ TEST_CASE("The color with an intersection behind the ray") {
 TEST_CASE("There is no shadow when nothing is collinear with point and light") {
   RT::World w;
   auto p = RT::point(0, 10, 0);
-  REQUIRE(!w.isShadowed(p));
+  REQUIRE(!w.isShadowed(p, w.lights[0]));
 }
 
 TEST_CASE("The shadow when an object is between the point and the light") {
   RT::World w;
   auto p = RT::point(10, -10, 10);
-  REQUIRE(w.isShadowed(p));
+  REQUIRE(w.isShadowed(p, w.lights[0]));
 }
 
 TEST_CASE("There is no shadow when an object is behind the light") {
   RT::World w;
   auto p = RT::point(-20, 20, -20);
-  REQUIRE(!w.isShadowed(p));
+  REQUIRE(!w.isShadowed(p, w.lights[0]));
 }
 
 TEST_CASE("There is no shadow when an object is behind the point") {
   RT::World w;
   auto p = RT::point(-2, 2, -2);
-  REQUIRE(!w.isShadowed(p));
+  REQUIRE(!w.isShadowed(p, w.lights[0]));
 }
 
 TEST_CASE("shadeHit() is given an intersection in shadow") {
   RT::World w(false);
-  w.light = RT::Light(RT::point(0, 0, -10), RT::color(1, 1, 1));
+  w.lights.emplace_back(RT::point(0, 0, -10), RT::color(1, 1, 1));
   auto s1 = RT::Sphere();
-  w.add(std::make_unique<RT::Sphere>(
-      s1)); // Fix: Allocate an object of the concrete class RT::Sphere
+  w.add(std::make_unique<RT::Sphere>(s1));
   auto s2 = RT::Sphere();
   s2.transformation = RT::translation(0, 0, 10);
   w.add(std::make_unique<RT::Sphere>(s2));
