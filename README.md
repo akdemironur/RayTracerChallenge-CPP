@@ -14,6 +14,8 @@ mkdir build && cd build
 cmake ..
 make RT
 ```
+Running `./RT` will create `sample.ppm` file in your build directory. (This will take long but you can reduce resolution in `src/RT.cpp`.
+
 ![Sample Image](./sample.png)
 
 ## License
