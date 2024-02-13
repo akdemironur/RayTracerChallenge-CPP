@@ -1,3 +1,4 @@
+#include <string>
 #define private public
 #include "Canvas.hpp"
 #include <catch2/catch_test_macros.hpp>
@@ -20,7 +21,9 @@ TEST_CASE("Writing pixels to a canvas", "[Canvas]") {
 TEST_CASE("Constructing the PPM header", "[Canvas]") {
   RT::Canvas c = RT::Canvas(5, 3);
   auto ppm = c.PPMHeader();
-  REQUIRE(ppm == "P3\n5 3\n255");
+  auto expected = std::vector<unsigned char>(
+      {'P', '6', '\n', '5', ' ', '3', '\n', '2', '5', '5', '\n'});
+  REQUIRE(ppm == expected);
 }
 
 TEST_CASE("Constructing the PPM pixel data", "[Canvas]") {
@@ -32,19 +35,8 @@ TEST_CASE("Constructing the PPM pixel data", "[Canvas]") {
   c.writePixel(2, 1, c2);
   c.writePixel(4, 2, c3);
   auto ppm = c.PPMBody();
-  REQUIRE(ppm == "255 0 0\n"
-                 "0 0 0\n"
-                 "0 0 0\n"
-                 "0 0 0\n"
-                 "0 0 0\n"
-                 "0 0 0\n"
-                 "0 0 0\n"
-                 "0 128 0\n"
-                 "0 0 0\n"
-                 "0 0 0\n"
-                 "0 0 0\n"
-                 "0 0 0\n"
-                 "0 0 0\n"
-                 "0 0 0\n"
-                 "0 0 255\n");
+  std::vector<unsigned char> expected = {
+      255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  128,
+      0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255};
+  REQUIRE(ppm == expected);
 }
