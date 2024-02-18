@@ -6,5 +6,5 @@
 #include "Ray.hpp"
 #include "Shape.hpp"
 #include "Tuple.hpp"
-#include "Util.h"
+#include "Util.hpp"
 #include "World.hpp"

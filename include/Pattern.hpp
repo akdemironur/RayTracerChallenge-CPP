@@ -1,6 +1,7 @@
 #pragma once
 #include "Matrix.hpp"
 #include "Tuple.hpp"
+#include <memory>
 namespace RT {
 
 class Pattern {

@@ -5,6 +5,7 @@
 #include "Ray.hpp"
 #include "Tuple.hpp"
 #include "Util.hpp"
+#include <algorithm>
 #include <limits>
 #include <memory>
 #include <optional>
